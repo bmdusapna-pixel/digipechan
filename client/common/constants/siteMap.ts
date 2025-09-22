@@ -1,0 +1,27 @@
+export const SITE_MAP = {
+    HOME: "/",
+    AUTH_DEFAULT: "/auth",
+    LOGIN: "/auth/login",
+    SIGN_UP: "/auth/sign-up",
+    CHECK_EMAIL: "/auth/check-email",
+    FORGOT_PASSWORD: "/auth/forgot-password",
+    QR_DEFAULT: "/qr",
+    QR_GENERATE: "/qr/generate",
+    QR_GENERATE_TYPE: (type: string) => `/qr/generate/${type}`,
+    QR_SHOP: "/qr/shop",
+    QR_SHOP_CART: "/qr/shop/cart",
+    QR_SHOP_CHECKOUT: "/qr/shop/checkout",
+    QR_SHOP_PAYMENT: "/qr/shop/payment",
+    QR_MY: "/qr/my",
+    QR_MY_SELECTED: (id: string) => `/qr/my/${id}`,
+    QR_MY_ACTIVATE: (id: string) => `/qr/my/${id}/activate`,
+
+    SHOP: "/shop",
+    CART: "/shop/cart",
+    SCAN: "/qr/scan",
+    CHECK_VALIDITY: "/qr/check-validity",
+    PROFILE: "/profile",
+    // SHOP: (type: string) => `/shop/${type}`,
+
+    QR_TYPE_CREATE: "/qr/type_create",
+};
