@@ -5,15 +5,30 @@ import { useRouter } from "next/navigation";
 import useAuthStore from "@/store/authStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { CreatePaymentTicketForm } from "@/components/layout/salesman/CreatePaymentTicketForm";
-import { ArrowLeft, QrCode, Package, CreditCard, Receipt, MoreHorizontal, Loader2, Loader2Icon } from "lucide-react";
+import {
+  ArrowLeft,
+  QrCode,
+  Package,
+  CreditCard,
+  Receipt,
+  MoreHorizontal,
+  Loader2,
+  Loader2Icon,
+} from "lucide-react";
 import { getBundleQrs, SalesmanQR } from "@/types/salesman";
 import { initiatePayment } from "@/lib/api/qr/initiatePayment";
 import { DeliveryType } from "@/common/constants/enum";
@@ -28,7 +43,12 @@ export default function BundleDetails({ bundleId }: { bundleId: string }) {
   const [showCreateTicket, setShowCreateTicket] = useState(false);
   const [redirectingQrId, setRedirectingQrId] = useState<string | null>(null);
 
-  const { data: bundleData, isLoading, refetch, isRefetching } = useQuery({
+  const {
+    data: bundleData,
+    isLoading,
+    refetch,
+    isRefetching,
+  } = useQuery({
     queryKey: ["bundle-qrs", bundleId],
     queryFn: () => getBundleQrs(bundleId, headers),
     enabled: !!token && !!bundleId,
@@ -55,11 +75,11 @@ export default function BundleDetails({ bundleId }: { bundleId: string }) {
 
       const paymentUrl = await initiatePayment({
         items: [{ qrTypeId, quantity: 1 }],
-        deliveryType: (bundle?.deliveryType as DeliveryType) || DeliveryType.ETAG,
+        deliveryType:
+          (bundle?.deliveryType as DeliveryType) || DeliveryType.ETAG,
         amount: qr.price,
         qrId: qr._id, // Add the QR ID to identify this as a salesman bundle sale
       });
-      
 
       if (paymentUrl) {
         window.location.href = paymentUrl as unknown as string;
@@ -80,30 +100,28 @@ export default function BundleDetails({ bundleId }: { bundleId: string }) {
   const handleTicketCreated = async () => {
     setShowCreateTicket(false);
     setSelectedQr(null);
-    
+
     // Refetch bundle data to show updated QR statuses
     try {
       await refetch();
       toast.success("Payment ticket created! QR status updated.");
     } catch (error) {
       console.error("Failed to refetch bundle data:", error);
-      toast.error("Ticket created but failed to update display. Please refresh the page.");
+      toast.error(
+        "Ticket created but failed to update display. Please refresh the page."
+      );
     }
   };
 
   const canSellQr = (qr: SalesmanQR) => {
     // Only INACTIVE QRs without a customer and not already sold can be sold
     // Exclude PENDING_PAYMENT and REJECTED QRs
-    return (
-      qr.qrStatus === "INACTIVE" &&
-      !qr.createdFor &&
-      !qr.isSold
-    );
+    return qr.qrStatus === "INACTIVE" && !qr.createdFor && !qr.isSold;
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 mt-10">
-      <div className="mx-auto max-w-4xl space-y-6">
+      <div className="mx-auto max-w-5xl space-y-6">
         {/* Header */}
         <Button
           variant="ghost"
@@ -133,11 +151,15 @@ export default function BundleDetails({ bundleId }: { bundleId: string }) {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="font-medium text-gray-600">Total QRs:</span>
-                <p className="text-lg font-bold text-blue-600">{bundle?.qrCount ?? qrs.length}</p>
+                <p className="text-lg font-bold text-blue-600">
+                  {bundle?.qrCount ?? qrs.length}
+                </p>
               </div>
               <div>
                 <span className="font-medium text-gray-600">QR Type:</span>
-                <p className="text-lg font-bold text-gray-900">{qrs?.[0]?.qrTypeId?.qrName ?? "N/A"}</p>
+                <p className="text-lg font-bold text-gray-900">
+                  {qrs?.[0]?.qrTypeId?.qrName ?? "N/A"}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -182,30 +204,38 @@ export default function BundleDetails({ bundleId }: { bundleId: string }) {
                         <p className="font-medium text-gray-900 truncate">
                           {qr.serialNumber}
                         </p>
-                        <p className="text-gray-700">{qr.qrTypeId?.qrName ?? "Unknown Type"}</p>
+                        <p className="text-gray-700">
+                          {qr.qrTypeId?.qrName ?? "Unknown Type"}
+                        </p>
                         {typeof qr.price === "number" && (
-                          <p className="text-green-700 font-semibold">₹{qr.price.toFixed(2)}</p>
+                          <p className="text-green-700 font-semibold">
+                            ₹{qr.price.toFixed(2)}
+                          </p>
                         )}
-                        <div className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                          qr.qrStatus === "ACTIVE" 
-                            ? "bg-green-100 text-green-800" 
-                            : qr.qrStatus === "PENDING_PAYMENT"
-                            ? "bg-orange-100 text-orange-800"
+                        <div
+                          className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                            qr.qrStatus === "ACTIVE"
+                              ? "bg-green-100 text-green-800"
+                              : qr.qrStatus === "PENDING_PAYMENT"
+                                ? "bg-orange-100 text-orange-800"
+                                : qr.qrStatus === "REJECTED"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                          }`}
+                        >
+                          {qr.qrStatus === "PENDING_PAYMENT"
+                            ? "Pending Payment"
                             : qr.qrStatus === "REJECTED"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}>
-                          {qr.qrStatus === "PENDING_PAYMENT" ? "Pending Payment" : 
-                           qr.qrStatus === "REJECTED" ? "Payment Rejected" : 
-                           qr.qrStatus}
+                              ? "Payment Rejected"
+                              : qr.qrStatus}
                         </div>
-                        
+
                         {/* Sell Button - Only show for available QRs */}
                         {canSellQr(qr) && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button 
-                                size="sm" 
+                              <Button
+                                size="sm"
                                 className="w-full mt-2 bg-blue-600 hover:bg-blue-700"
                                 disabled={redirectingQrId === qr._id}
                               >
@@ -223,14 +253,14 @@ export default function BundleDetails({ bundleId }: { bundleId: string }) {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuItem 
+                              <DropdownMenuItem
                                 onClick={() => handleOnlinePayment(qr)}
                                 className="flex items-center gap-2"
                               >
                                 <CreditCard className="w-4 h-4" />
                                 Online Payment
                               </DropdownMenuItem>
-                              <DropdownMenuItem 
+                              <DropdownMenuItem
                                 onClick={() => handleOfflinePayment(qr)}
                                 className="flex items-center gap-2"
                               >
@@ -240,15 +270,19 @@ export default function BundleDetails({ bundleId }: { bundleId: string }) {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
-                        
+
                         {/* Show status for sold QRs */}
                         {!canSellQr(qr) && (
                           <div className="text-xs text-gray-500 mt-2">
-                            {qr.qrStatus === "ACTIVE" ? "Activated & Sold" : 
-                             qr.qrStatus === "INACTIVE" ? "Payment Approved - Ready to Activate" : 
-                             qr.qrStatus === "PENDING_PAYMENT" ? "Payment Pending - Ticket Created" : 
-                             qr.qrStatus === "REJECTED" ? "Payment Rejected - Contact Admin" : 
-                             "Not Available"}
+                            {qr.qrStatus === "ACTIVE"
+                              ? "Activated & Sold"
+                              : qr.qrStatus === "INACTIVE"
+                                ? "Payment Approved - Ready to Activate"
+                                : qr.qrStatus === "PENDING_PAYMENT"
+                                  ? "Payment Pending - Ticket Created"
+                                  : qr.qrStatus === "REJECTED"
+                                    ? "Payment Rejected - Contact Admin"
+                                    : "Not Available"}
                           </div>
                         )}
                       </div>
@@ -263,25 +297,28 @@ export default function BundleDetails({ bundleId }: { bundleId: string }) {
 
       {/* Create Payment Ticket Dialog */}
       <Dialog open={showCreateTicket} onOpenChange={setShowCreateTicket}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl sm:max-w-auto max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create Payment Ticket</DialogTitle>
             <DialogDescription>
-              Create a payment ticket for offline sale of QR: {selectedQr?.serialNumber}
+              Create a payment ticket for offline sale of QR:{" "}
+              {selectedQr?.serialNumber}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedQr && (
             <CreatePaymentTicketForm
-              availableQrs={[{
-                _id: selectedQr._id,
-                serialNumber: selectedQr.serialNumber,
-                price: selectedQr.price,
-                qrTypeId: {
-                  qrName: selectedQr.qrTypeId?.qrName || "Unknown",
-                  qrDescription: selectedQr.qrTypeId?.qrDescription || "",
-                }
-              }]}
+              availableQrs={[
+                {
+                  _id: selectedQr._id,
+                  serialNumber: selectedQr.serialNumber,
+                  price: selectedQr.price,
+                  qrTypeId: {
+                    qrName: selectedQr.qrTypeId?.qrName || "Unknown",
+                    qrDescription: selectedQr.qrTypeId?.qrDescription || "",
+                  },
+                },
+              ]}
               bundleId={bundleId}
               bundlePricePerQr={bundle?.pricePerQr}
               onSuccess={handleTicketCreated}

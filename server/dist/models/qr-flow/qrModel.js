@@ -77,7 +77,7 @@ const qrSchema = new mongoose_1.Schema({
     },
     serialNumber: {
         type: String,
-        match: /^DIGI\d{10}$/,
+        match: /^[A-Z]{4}\d+-\d{10}$/,
     },
     customerName: {
         type: String,
@@ -124,7 +124,7 @@ const qrSchema = new mongoose_1.Schema({
     orderStatus: {
         type: String,
         enum: Object.values(constants_1.OrderStatus),
-        default: constants_1.OrderStatus.SHIPPED
+        default: constants_1.OrderStatus.SHIPPED,
     },
     qrStatus: {
         type: String,
@@ -175,11 +175,13 @@ const qrSchema = new mongoose_1.Schema({
         default: [],
     },
     questions: {
-        type: [{
+        type: [
+            {
                 id: String,
                 text: String,
                 category: String,
-            }],
+            },
+        ],
         default: [],
     },
 }, { timestamps: true });

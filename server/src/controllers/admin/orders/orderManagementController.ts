@@ -167,11 +167,11 @@ export const bulkGenerateQRs = expressAsyncHandler(
 
       let nextNumber = 1;
       if (lastBundle?.bundleId) {
-        const match = lastBundle.bundleId.match(/BUNDLE-(\d+)/);
+        const match = lastBundle.bundleId.match(/DIGI(\d+)/);
         if (match) nextNumber = parseInt(match[1], 10) + 1;
       }
 
-      return `BUNDLE-${nextNumber}`;
+      return `DIGI${nextNumber}`;
     };
     const { quantity, price, qrTypeId, tagType, questions } = req.body as any;
 
@@ -216,7 +216,7 @@ export const bulkGenerateQRs = expressAsyncHandler(
       const updateData: any = {};
       if (tagType) updateData.tagType = tagType;
       if (questions && questions.length > 0) updateData.questions = questions;
-      
+
       await QRMetaData.findByIdAndUpdate(qrTypeId, updateData);
     }
 
@@ -239,7 +239,7 @@ export const bulkGenerateQRs = expressAsyncHandler(
         "qr_codes/",
         "image"
       );
-      const serialNumber = generateRandomSerialNumber();
+      const serialNumber = generateRandomSerialNumber(bundleId);
 
       const qr = await QRModel.create({
         _id: qrId,

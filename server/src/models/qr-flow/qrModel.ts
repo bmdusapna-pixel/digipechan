@@ -1,11 +1,11 @@
-import mongoose, { Schema } from 'mongoose';
-import { IAddress, IQR as BaseIQR, IReview } from '../../types/newQR.types';
+import mongoose, { Schema } from "mongoose";
+import { IAddress, IQR as BaseIQR, IReview } from "../../types/newQR.types";
 import {
   COLLECTION_NAMES,
   DeliveryType,
   OrderStatus,
   QRStatus,
-} from '../../config/constants';
+} from "../../config/constants";
 
 const addressSchema = new Schema<IAddress>(
   {
@@ -17,7 +17,7 @@ const addressSchema = new Schema<IAddress>(
     state: String,
     country: String,
   },
-  { _id: false },
+  { _id: false }
 );
 
 const reviewSchema = new Schema<IReview>(
@@ -45,7 +45,7 @@ const reviewSchema = new Schema<IReview>(
       default: Date.now,
     },
   },
-  { _id: true },
+  { _id: true }
 );
 
 type IQR = BaseIQR & { price?: number; reviews?: IReview[] };
@@ -59,7 +59,7 @@ const qrSchema = new Schema<IQR>(
     },
     serialNumber: {
       type: String,
-      match: /^DIGI\d{10}$/,
+      match: /^[A-Z]{4}\d+-\d{10}$/,
     },
     customerName: {
       type: String,
@@ -103,10 +103,10 @@ const qrSchema = new Schema<IQR>(
       type: String,
       enum: Object.values(DeliveryType),
     },
-    orderStatus : {
-      type : String,
-      enum : Object.values(OrderStatus),
-      default : OrderStatus.SHIPPED
+    orderStatus: {
+      type: String,
+      enum: Object.values(OrderStatus),
+      default: OrderStatus.SHIPPED,
     },
     qrStatus: {
       type: String,
@@ -157,18 +157,20 @@ const qrSchema = new Schema<IQR>(
       default: [],
     },
     questions: {
-      type: [{
-        id: String,
-        text: String,
-        category: String,
-      }],
+      type: [
+        {
+          id: String,
+          text: String,
+          category: String,
+        },
+      ],
       default: [],
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 export const QRModel = mongoose.model<IQR>(
   COLLECTION_NAMES.GENERATED_QRS,
-  qrSchema,
+  qrSchema
 );

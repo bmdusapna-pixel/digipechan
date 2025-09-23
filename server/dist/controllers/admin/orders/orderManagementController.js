@@ -178,11 +178,11 @@ exports.bulkGenerateQRs = (0, express_async_handler_1.default)((req, res) => __a
             .lean();
         let nextNumber = 1;
         if (lastBundle === null || lastBundle === void 0 ? void 0 : lastBundle.bundleId) {
-            const match = lastBundle.bundleId.match(/BUNDLE-(\d+)/);
+            const match = lastBundle.bundleId.match(/DIGI(\d+)/);
             if (match)
                 nextNumber = parseInt(match[1], 10) + 1;
         }
-        return `BUNDLE-${nextNumber}`;
+        return `DIGI${nextNumber}`;
     });
     const { quantity, price, qrTypeId, tagType, questions } = req.body;
     if (!quantity || !qrTypeId || price === undefined) {
@@ -221,7 +221,7 @@ exports.bulkGenerateQRs = (0, express_async_handler_1.default)((req, res) => __a
         const qrRawData = `${frontendUrl}/qr/scan/${qrId.toString()}`;
         const qrBuffer = yield qrcode_1.default.toBuffer(qrRawData, { type: "png" });
         const cloudinaryResult = yield (0, uploadToCloudinary_1.uploadToCloudinary)(qrBuffer, "qr_codes/", "image");
-        const serialNumber = (0, generateSerialNumber_1.generateRandomSerialNumber)();
+        const serialNumber = (0, generateSerialNumber_1.generateRandomSerialNumber)(bundleId);
         const qr = yield qrModel_1.QRModel.create({
             _id: qrId,
             qrTypeId,

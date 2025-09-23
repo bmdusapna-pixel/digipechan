@@ -4,18 +4,18 @@ exports.gstNumberSchema = exports.vehicleNumberSchema = exports.addressSchema = 
 const zod_1 = require("zod");
 exports.objectIdSchema = zod_1.z
     .string()
-    .regex(/^[a-f\d]{24}$/i, { message: 'Invalid ObjectId format' });
-exports.serialNumberSchema = zod_1.z.string().regex(/^DIGI\d{10}$/, {
-    message: "Serial number must start with 'DIGI' followed by 10 digits",
+    .regex(/^[a-f\d]{24}$/i, { message: "Invalid ObjectId format" });
+exports.serialNumberSchema = zod_1.z.string().regex(/^[A-Z]{4}\d+-\d{10}$/, {
+    message: "Serial number must be in format PREFIX####...-########## (e.g., DIGI1-1234567890)",
 });
 exports.mobileNumberSchema = zod_1.z.string().regex(/^\+\d{1,3}\s\d{10}$/, {
     message: "Mobile number must be in format '+<country-code> 1234567890'",
 });
 exports.emailSchema = zod_1.z.string().email({
-    message: 'Invalid email address',
+    message: "Invalid email address",
 });
 const pinCodeSchema = zod_1.z.string().regex(/^\d{6}$/, {
-    message: 'PIN code must be exactly 6 digits',
+    message: "PIN code must be exactly 6 digits",
 });
 exports.addressSchema = zod_1.z.object({
     houseNumber: zod_1.z.string().optional(),
@@ -34,5 +34,5 @@ exports.vehicleNumberSchema = zod_1.z
 exports.gstNumberSchema = zod_1.z
     .string()
     .regex(/^[0-3][0-9][A-Z]{5}\d{4}[A-Z][A-Z0-9]Z[A-Z0-9]$/, {
-    message: 'Invalid GST Number format',
+    message: "Invalid GST Number format",
 });

@@ -1525,3 +1525,30 @@
 2025-09-20 15:19:13 [[34mdebug[39m] Database connected successfully!
 2025-09-20 16:19:14 [[32minfo[39m] EKQR Response
 2025-09-20 16:19:14 [[31merror[39m] eKQR API Error:
+2025-09-22 12:12:15 [[32minfo[39m] Started Your Application on Port 8080
+2025-09-22 12:12:15 [[34mdebug[39m] Database connected successfully!
+2025-09-22 13:05:30 [[32minfo[39m] Started Your Application on Port 8080
+2025-09-22 13:05:41 [[34mdebug[39m] Database connected successfully!
+2025-09-22 13:12:25 [[31merror[39m] Create QR Type Error: Request Timeout
+2025-09-22 13:12:58 [[32minfo[39m] Started Your Application on Port 8080
+2025-09-22 13:13:04 [[34mdebug[39m] Database connected successfully!
+2025-09-22 13:25:17 [[32minfo[39m] Started Your Application on Port 8080
+2025-09-22 13:25:21 [[34mdebug[39m] Database connected successfully!
+2025-09-22 16:26:07 [[32minfo[39m] Started Your Application on Port 8080
+2025-09-22 16:26:08 [[34mdebug[39m] Database connected successfully!
+2025-09-22 17:01:12 [[32minfo[39m] Started Your Application on Port 8080
+2025-09-22 17:01:21 [[34mdebug[39m] Database connected successfully!
+2025-09-22 18:38:25 [[32minfo[39m] EKQR Response
+2025-09-22 18:38:25 [[31merror[39m] eKQR API Error:
+2025-09-22 18:38:28 [[32minfo[39m] EKQR Response
+2025-09-22 18:38:28 [[31merror[39m] eKQR API Error:
+2025-09-22 18:40:42 [[32minfo[39m] EKQR Response
+2025-09-22 18:40:42 [[31merror[39m] eKQR API Error:
+2025-09-23 11:39:36 [[32minfo[39m] Started Your Application on Port 8080
+2025-09-23 11:39:37 [[34mdebug[39m] Database connected successfully!
+2025-09-23 11:44:30 [[32minfo[39m] Started Your Application on Port 8080
+2025-09-23 11:44:32 [[34mdebug[39m] Database connected successfully!
+2025-09-23 11:47:18 [[32minfo[39m] Started Your Application on Port 8080
+2025-09-23 11:47:22 [[34mdebug[39m] Database connected successfully!
+2025-09-23 12:34:58 [[32minfo[39m] Started Your Application on Port 8080
+2025-09-23 12:35:05 [[34mdebug[39m] Database connected successfully!

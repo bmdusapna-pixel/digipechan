@@ -65,7 +65,7 @@ exports.createNewQRType = (0, express_async_handler_1.default)((req, res) => __a
     var _a;
     try {
         const filesArray = req.files;
-        console.log('Files array : ', filesArray);
+        console.log("Files array : ", filesArray);
         const filesByField = {};
         for (const file of filesArray) {
             if (!filesByField[file.fieldname])
@@ -74,23 +74,23 @@ exports.createNewQRType = (0, express_async_handler_1.default)((req, res) => __a
         }
         // const newQRTypeData : INewQRTypeSchema = req.body;
         const rawData = req.body;
-        console.log('Raw Data : ', rawData);
+        console.log("Raw Data : ", rawData);
         const newQRTypeData = (0, parseHelper_1.parseRequestBody)(rawData, {
-            arrays: ['qrUseCases', 'deliveryType', 'professionsAllowed'],
-            booleans: ['includeGST', 'professionBased'],
-            numbers: ['originalPrice', 'discountedPrice', 'stockCount'],
+            arrays: ["qrUseCases", "deliveryType", "professionsAllowed"],
+            booleans: ["includeGST", "professionBased"],
+            numbers: ["originalPrice", "discountedPrice", "stockCount"],
         });
-        console.log('New QR Type Data : ', newQRTypeData);
+        console.log("New QR Type Data : ", newQRTypeData);
         const validation = newQRTypeSchema_1.newQRTypeSchema.safeParse(newQRTypeData);
-        console.log('Validation : ', (_a = validation.error) === null || _a === void 0 ? void 0 : _a.errors[0]);
+        console.log("Validation : ", (_a = validation.error) === null || _a === void 0 ? void 0 : _a.errors[0]);
         if (!validation.success)
-            return (0, ApiResponse_1.ApiResponse)(res, 500, 'Failed to create QR Type!', false, null);
+            return (0, ApiResponse_1.ApiResponse)(res, 500, "Failed to create QR Type!", false, null);
         const newQR = yield (0, handleQRCreation_1.handleQRTypeCreation)(validation.data, filesByField);
-        return (0, ApiResponse_1.ApiResponse)(res, 201, 'New QR Type created successfully', true, newQR);
+        return (0, ApiResponse_1.ApiResponse)(res, 201, "New QR Type created successfully", true, newQR);
     }
     catch (error) {
-        logger_1.default.error('Create QR Type Error:', error);
-        return (0, ApiResponse_1.ApiResponse)(res, 500, 'Failed to create QR Type!', false, null, error.message);
+        logger_1.default.error("Create QR Type Error:", error);
+        return (0, ApiResponse_1.ApiResponse)(res, 500, "Failed to create QR Type!", false, null, error.message);
     }
 }));
 const createAndSaveQR = (params) => __awaiter(void 0, void 0, void 0, function* () {
@@ -99,13 +99,15 @@ const createAndSaveQR = (params) => __awaiter(void 0, void 0, void 0, function* 
     const backgroundImage = newQRType === null || newQRType === void 0 ? void 0 : newQRType.qrBackgroundImage;
     const icon = newQRType === null || newQRType === void 0 ? void 0 : newQRType.qrIcon;
     const qrId = new mongoose_1.default.Types.ObjectId();
-    const frontendUrl = secrets_1.NODE_ENV === 'dev' ? secrets_1.FRONTEND_BASE_URL_DEV : secrets_1.FRONTEND_BASE_URL_PROD_DOMAIN;
+    const frontendUrl = secrets_1.NODE_ENV === "dev" ? secrets_1.FRONTEND_BASE_URL_DEV : secrets_1.FRONTEND_BASE_URL_PROD_DOMAIN;
     const qrRawData = `${frontendUrl}/qr/scan/${qrId.toString()}`;
-    const QRCode = yield Promise.resolve().then(() => __importStar(require('qrcode')));
-    const qrBuffer = yield QRCode.toBuffer(qrRawData, { type: 'png' });
-    const cloudinaryResult = yield (0, uploadToCloudinary_1.uploadToCloudinary)(qrBuffer, 'qr_codes/', 'image');
-    const serialNumber = (0, generateSerialNumber_1.generateRandomSerialNumber)();
-    const orderStatus = deliveryType == constants_1.DeliveryType.ETAG ? constants_1.OrderStatus.DELIVERED : constants_1.OrderStatus.SHIPPED;
+    const QRCode = yield Promise.resolve().then(() => __importStar(require("qrcode")));
+    const qrBuffer = yield QRCode.toBuffer(qrRawData, { type: "png" });
+    const cloudinaryResult = yield (0, uploadToCloudinary_1.uploadToCloudinary)(qrBuffer, "qr_codes/", "image");
+    const serialNumber = (0, generateSerialNumber_1.generateRandomSerialNumber)("DIGI");
+    const orderStatus = deliveryType == constants_1.DeliveryType.ETAG
+        ? constants_1.OrderStatus.DELIVERED
+        : constants_1.OrderStatus.SHIPPED;
     const qr = yield qrModel_1.QRModel.create({
         _id: qrId,
         qrTypeId: qrTypeId,
@@ -118,7 +120,7 @@ const createAndSaveQR = (params) => __awaiter(void 0, void 0, void 0, function* 
         qrRawData: qrRawData,
         qrUrl: cloudinaryResult.secure_url,
         orderStatus: orderStatus,
-        questions: (newQRType === null || newQRType === void 0 ? void 0 : newQRType.questions) || [] // Add questions from QR type
+        questions: (newQRType === null || newQRType === void 0 ? void 0 : newQRType.questions) || [], // Add questions from QR type
     });
     yield user_1.User.findByIdAndUpdate(createdFor, { $inc: { totalGeneratedQRs: 1 } }, { new: true });
     console.log("Serial Number : ", serialNumber);
