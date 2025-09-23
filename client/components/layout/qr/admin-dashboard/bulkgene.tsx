@@ -47,6 +47,7 @@ import {
   ExternalLink,
   ChevronsUpDown,
   Check,
+  Share2,
 } from "lucide-react";
 import {
   Popover,
@@ -69,7 +70,14 @@ import {
   updatePaymentTicketStatus,
 } from "@/lib/api/paymentTicket";
 import { IPaymentTicket } from "@/types/paymentTicket.types";
-import { CheckCircle, XCircle, Clock, Eye, FileText, RefreshCw } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  Eye,
+  FileText,
+  RefreshCw,
+} from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import TagTypeQuestionSelector from "./TagTypeQuestionSelector";
 import { QRTagType, QRTagQuestion } from "@/types/newQRType.types";
@@ -86,6 +94,7 @@ export default function BulkGenerationForm() {
   const [downloadingBundle, setDownloadingBundle] = useState<string | null>(
     null
   );
+  const [generatingShare, setGeneratingShare] = useState<string | null>(null);
   const [salespersonComboboxOpen, setSalespersonComboboxOpen] = useState(false);
   const [newSalesperson, setNewSalesperson] = useState({
     firstName: "",
@@ -107,10 +116,19 @@ export default function BulkGenerationForm() {
   const [isRejectingTicket, setIsRejectingTicket] = useState(false);
 
   // Tag type and questions state
-  const [selectedTagType, setSelectedTagType] = useState<QRTagType | null>(null);
-  const [selectedQuestions, setSelectedQuestions] = useState<QRTagQuestion[]>([]);
+  const [selectedTagType, setSelectedTagType] = useState<QRTagType | null>(
+    null
+  );
+  const [selectedQuestions, setSelectedQuestions] = useState<QRTagQuestion[]>(
+    []
+  );
 
-  const { data: qrTypes, isLoading: isLoadingTypes, refetch: refetchQrTypes, isFetching: isFetchingQrTypes } = useQuery({
+  const {
+    data: qrTypes,
+    isLoading: isLoadingTypes,
+    refetch: refetchQrTypes,
+    isFetching: isFetchingQrTypes,
+  } = useQuery({
     queryKey: ["qrTypes"],
     queryFn: () =>
       fetchQROnDeliveryTypeAPI({ deliveryType: DeliveryType.ETAG }),
@@ -186,14 +204,13 @@ export default function BulkGenerationForm() {
   });
 
   const generateMutation = useMutation({
-    mutationFn: (body: { 
-      quantity: number; 
-      price: number; 
+    mutationFn: (body: {
+      quantity: number;
+      price: number;
       qrTypeId: string;
       tagType?: QRTagType;
       questions?: QRTagQuestion[];
-    }) =>
-      apiRequest("POST", API_ENDPOINTS.bulkGenerate, body),
+    }) => apiRequest("POST", API_ENDPOINTS.bulkGenerate, body),
     onSuccess: (_data) => {
       toast.success(`Successfully generated bundle with ${quantity} QR codes`);
       setQuantity("");
@@ -243,7 +260,7 @@ export default function BulkGenerationForm() {
     onSettled: () => {
       setIsApprovingTicket(false);
       setIsRejectingTicket(false);
-    }
+    },
   });
 
   const handleGenerate = () => {
@@ -342,6 +359,52 @@ export default function BulkGenerationForm() {
     }
   };
 
+  const handleGenerateShareLink = async (bundleId: string) => {
+    try {
+      setGeneratingShare(bundleId);
+
+      // Get the auth token
+      const state = useAuthStore.getState();
+      const accessToken = state.user?.accessToken;
+
+      if (!accessToken) {
+        toast.error("Authentication required");
+        return;
+      }
+
+      // Call the backend to generate share link
+      const response = await fetch(API_ENDPOINTS.shareBundleORs(bundleId), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result?.DATA?.shareUrl) {
+        const shareUrl = result.DATA.shareUrl;
+
+        // Copy to clipboard
+        await navigator.clipboard.writeText(shareUrl);
+
+        toast.success("Share link copied to clipboard!");
+      } else {
+        toast.error("Failed to generate share link");
+      }
+    } catch (error) {
+      console.error("Generate share link failed:", error);
+      toast.error("Failed to generate share link");
+    } finally {
+      setGeneratingShare(null);
+    }
+  };
+
   // Payment ticket handlers
   const handleViewTicket = (ticket: IPaymentTicket) => {
     setSelectedTicket(ticket);
@@ -401,18 +464,18 @@ export default function BulkGenerationForm() {
       <Tabs defaultValue="generate" className="w-full">
         <div className="flex items-center justify-between">
           <TabsList className="p-3 border ">
-          <TabsTrigger value="generate" className="p-3">
-            Generate QRs
-          </TabsTrigger>
-          <TabsTrigger value="manage" className="p-3">
-            Manage Bulk QRs
-          </TabsTrigger>
-          <TabsTrigger value="salespeople" className="p-3">
-            Manage Salespeople
-          </TabsTrigger>
-          <TabsTrigger value="payment-tickets" className="p-3">
-            Payment Tickets
-          </TabsTrigger>
+            <TabsTrigger value="generate" className="p-3">
+              Generate QRs
+            </TabsTrigger>
+            <TabsTrigger value="manage" className="p-3">
+              Manage Bulk QRs
+            </TabsTrigger>
+            <TabsTrigger value="salespeople" className="p-3">
+              Manage Salespeople
+            </TabsTrigger>
+            <TabsTrigger value="payment-tickets" className="p-3">
+              Payment Tickets
+            </TabsTrigger>
           </TabsList>
           <Button
             variant="outline"
@@ -434,13 +497,17 @@ export default function BulkGenerationForm() {
               isFetchingPaymentTickets
             }
           >
-            <RefreshCw className={`h-4 w-4 ${(
-              isFetchingQrTypes ||
-              isLoadingBundles ||
-              isLoadingSalesmen ||
-              isLoadingSalespersonManagement ||
-              isFetchingPaymentTickets
-            ) ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${
+                isFetchingQrTypes ||
+                isLoadingBundles ||
+                isLoadingSalesmen ||
+                isLoadingSalespersonManagement ||
+                isFetchingPaymentTickets
+                  ? "animate-spin"
+                  : ""
+              }`}
+            />
             Refresh All
           </Button>
         </div>
@@ -765,7 +832,7 @@ export default function BulkGenerationForm() {
                                 </Button>
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="space-x-2">
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -776,6 +843,19 @@ export default function BulkGenerationForm() {
                               >
                                 <Download className="h-4 w-4" />
                                 {downloadingBundle === bundle.bundleId
+                                  ? "..."
+                                  : ""}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  handleGenerateShareLink(bundle.bundleId)
+                                }
+                                disabled={generatingShare === bundle.bundleId}
+                              >
+                                <Share2 className="h-4 w-4" />
+                                {generatingShare === bundle.bundleId
                                   ? "..."
                                   : ""}
                               </Button>
@@ -945,8 +1025,10 @@ export default function BulkGenerationForm() {
                   disabled={isFetchingPaymentTickets}
                   className="flex items-center gap-2"
                 >
-                  <RefreshCw className={`h-4 w-4 ${isFetchingPaymentTickets ? 'animate-spin' : ''}`} />
-                  {isFetchingPaymentTickets ? 'Refreshing' : 'Refresh'}
+                  <RefreshCw
+                    className={`h-4 w-4 ${isFetchingPaymentTickets ? "animate-spin" : ""}`}
+                  />
+                  {isFetchingPaymentTickets ? "Refreshing" : "Refresh"}
                 </Button>
               </div>
             </CardHeader>
@@ -1040,7 +1122,8 @@ export default function BulkGenerationForm() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {(ticket.status === "PENDING" || ticket.status === "REJECTED") ? (
+                            {ticket.status === "PENDING" ||
+                            ticket.status === "REJECTED" ? (
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -1189,7 +1272,8 @@ export default function BulkGenerationForm() {
                 <div className="bg-gray-50 p-3 rounded-md border">
                   <p>
                     <span className="font-medium">Name:</span>{" "}
-                    {selectedTicket.salespersonId?.firstName} {selectedTicket.salespersonId?.lastName}
+                    {selectedTicket.salespersonId?.firstName}{" "}
+                    {selectedTicket.salespersonId?.lastName}
                   </p>
                   <p>
                     <span className="font-medium">Phone:</span>{" "}
@@ -1254,14 +1338,19 @@ export default function BulkGenerationForm() {
 
               {/* Action Buttons */}
               <div className="flex gap-3 pt-4">
-                {(selectedTicket.status === "PENDING" || selectedTicket.status === "REJECTED") && (
+                {(selectedTicket.status === "PENDING" ||
+                  selectedTicket.status === "REJECTED") && (
                   <Button
                     onClick={handleApproveTicket}
                     disabled={isApprovingTicket}
                     className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
                   >
                     <CheckCircle className="h-4 w-4" />
-                    {isApprovingTicket ? "Approving..." : selectedTicket.status === "REJECTED" ? "Mark as Paid & Approve" : "Approve"}
+                    {isApprovingTicket
+                      ? "Approving..."
+                      : selectedTicket.status === "REJECTED"
+                        ? "Mark as Paid & Approve"
+                        : "Approve"}
                   </Button>
                 )}
                 {selectedTicket.status === "PENDING" && (

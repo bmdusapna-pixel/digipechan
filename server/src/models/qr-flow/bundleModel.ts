@@ -1,19 +1,21 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { COLLECTION_NAMES } from '../../config/constants';
+import mongoose, { Schema, Document } from "mongoose";
+import { COLLECTION_NAMES } from "../../config/constants";
 
 export interface IBundle extends Document {
   bundleId: string;
   qrTypeId: mongoose.Types.ObjectId;
   qrCount: number;
+  shareToken: string;
+  shareTokenExpiresAt: Date;
   createdBy: mongoose.Types.ObjectId;
   assignedTo: mongoose.Types.ObjectId | null;
   deliveryType: string | null;
-  status: 'UNASSIGNED' | 'ASSIGNED';
+  status: "UNASSIGNED" | "ASSIGNED";
   qrIds: mongoose.Types.ObjectId[];
   pricePerQr?: number;
   createdAt: Date;
   updatedAt: Date;
-} 
+}
 
 const bundleSchema = new Schema<IBundle>(
   {
@@ -31,6 +33,14 @@ const bundleSchema = new Schema<IBundle>(
       type: Number,
       required: true,
     },
+    shareToken: {
+      type: String,
+      default: null,
+    },
+    shareTokenExpiresAt: {
+      type: Date,
+      default: null,
+    },
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: COLLECTION_NAMES.USER,
@@ -47,13 +57,15 @@ const bundleSchema = new Schema<IBundle>(
     },
     status: {
       type: String,
-      enum: ['UNASSIGNED', 'ASSIGNED'],
-      default: 'UNASSIGNED',
+      enum: ["UNASSIGNED", "ASSIGNED"],
+      default: "UNASSIGNED",
     },
-    qrIds: [{
-      type: Schema.Types.ObjectId,
-      ref: COLLECTION_NAMES.GENERATED_QRS,
-    }],
+    qrIds: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: COLLECTION_NAMES.GENERATED_QRS,
+      },
+    ],
     pricePerQr: {
       type: Number,
       default: null,
@@ -61,10 +73,10 @@ const bundleSchema = new Schema<IBundle>(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 export const Bundle = mongoose.model<IBundle>(
   COLLECTION_NAMES.BUNDLE,
-  bundleSchema,
+  bundleSchema
 );

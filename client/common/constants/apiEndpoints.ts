@@ -17,7 +17,8 @@ export const API_ENDPOINTS = {
   // Salesman Dashboard
   salesmanStats: `${API_DOMAIN}/salesman/stats`,
   salesmanBundles: `${API_DOMAIN}/salesman/bundles`,
-  salesmanBundleQrs: (bundleId: string) => `${API_DOMAIN}/salesman/bundle/${bundleId}/qrs`,
+  salesmanBundleQrs: (bundleId: string) =>
+    `${API_DOMAIN}/salesman/bundle/${bundleId}/qrs`,
 
   // Create new qr type
   create_new_qr_type: `${API_DOMAIN}/qr-flow/create-new-type`,
@@ -46,24 +47,33 @@ export const API_ENDPOINTS = {
 
   // QR Questions
   upsertQuestions: `${API_DOMAIN}/qr-flow/questions/upsert`,
-  scanQuestions: (qrId: string) => `${API_DOMAIN}/qr-flow/scan/${qrId}/questions`,
+  scanQuestions: (qrId: string) =>
+    `${API_DOMAIN}/qr-flow/scan/${qrId}/questions`,
   getTypeQuestions: `${API_DOMAIN}/qr-flow/get-questions`,
 
   bulkGenerate: `${API_DOMAIN}/admin/generate-bulk-qrs`,
   bundles: `${API_DOMAIN}/admin/bundles`,
   assignBundle: `${API_DOMAIN}/admin/assign-bundle`,
-  downloadBundleQRs: (bundleId: string) => `${API_DOMAIN}/admin/bundles/${bundleId}/download`,
+  downloadBundleQRs: (bundleId: string) =>
+    `${API_DOMAIN}/admin/bundles/${bundleId}/download`,
+  shareBundleORs: (bundleId: string) =>
+    `${API_DOMAIN}/admin/bundles/${bundleId}/share`,
   salesmen: `${API_DOMAIN}/salesman/list`,
   createSalesperson: `${API_DOMAIN}/admin/create-salesperson`,
   salespersonManagement: `${API_DOMAIN}/admin/salesperson-management`,
-  salespersonCustomers: (id: string) => `${API_DOMAIN}/admin/salesperson/${id}/customers`,
-  salespersonBundles: (id: string) => `${API_DOMAIN}/admin/salesperson/${id}/bundles`,
-  adminTransferBundle: (bundleId: string) => `${API_DOMAIN}/admin/bundles/${bundleId}/transfer`,
-  salesmanSoldQrs: (status?: string) => `${API_DOMAIN}/salesman/sold-qrs${status ? `?status=${status}` : ""}`,
-  
+  salespersonCustomers: (id: string) =>
+    `${API_DOMAIN}/admin/salesperson/${id}/customers`,
+  salespersonBundles: (id: string) =>
+    `${API_DOMAIN}/admin/salesperson/${id}/bundles`,
+  adminTransferBundle: (bundleId: string) =>
+    `${API_DOMAIN}/admin/bundles/${bundleId}/transfer`,
+  salesmanSoldQrs: (status?: string) =>
+    `${API_DOMAIN}/salesman/sold-qrs${status ? `?status=${status}` : ""}`,
+
   // Payment Tickets
   createPaymentTicket: `${API_DOMAIN}/salesman/payment-ticket`,
   getSalespersonTickets: `${API_DOMAIN}/salesman/payment-tickets`,
   getAllPaymentTickets: `${API_DOMAIN}/admin/payment-tickets`,
-  updatePaymentTicketStatus: (ticketId: string) => `${API_DOMAIN}/admin/payment-tickets/${ticketId}/status`,
+  updatePaymentTicketStatus: (ticketId: string) =>
+    `${API_DOMAIN}/admin/payment-tickets/${ticketId}/status`,
 };

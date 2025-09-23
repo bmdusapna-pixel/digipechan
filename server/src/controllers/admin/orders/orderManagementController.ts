@@ -12,10 +12,13 @@ import { Response } from "express";
 import { PaymentTransaction } from "../../../models/transaction/paymentTransaction";
 import { Bundle } from "../../../models/qr-flow/bundleModel";
 import { Salesman } from "../../../models/auth/salesman";
+import { generateBundlePDF } from "../../../utils/pdfGenerator";
+import crypto from "crypto";
 import {
   FRONTEND_BASE_URL_DEV,
   FRONTEND_BASE_URL_PROD_DOMAIN,
   NODE_ENV,
+  BACKEND_BASE_URL,
 } from "../../../secrets";
 import expressAsyncHandler from "express-async-handler";
 import { QRMetaData } from "../../../models/qr-flow/newQRTypeModel";
@@ -368,326 +371,103 @@ export const assignBundleToSalesperson = expressAsyncHandler(
 
 export const downloadBundleQRs = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const { bundleId } = req.params;
+    const { bundleId } = req.params;
 
-      // Validate bundleId
-      if (!bundleId) {
-        return ApiResponse(res, 400, "Bundle ID is required", false, null);
-      }
+    if (!bundleId) {
+      return ApiResponse(res, 400, "Bundle ID is required", false, null);
+    }
 
-      // Find the bundle by its string bundleId and populate related fields
-      const bundle = await Bundle.findOne({ bundleId })
-        .populate("qrTypeId")
-        .populate({ path: "qrIds", select: "serialNumber qrUrl createdAt" })
-        .populate("createdBy", "firstName lastName")
-        .lean();
+    const bundle = await Bundle.findOne({ bundleId })
+      .populate("qrTypeId")
+      .populate({ path: "qrIds", select: "serialNumber qrUrl createdAt" })
+      .populate("createdBy", "firstName lastName")
+      .lean();
 
-      if (!bundle) {
-        return ApiResponse(res, 404, "Bundle not found", false, null);
-      }
+    if (!bundle) {
+      return ApiResponse(res, 404, "Bundle not found", false, null);
+    }
 
-      // Optional: permission check (skip if identities are missing)
-      const isAdmin =
-        (req as any)?.user?.role === "ADMIN" ||
-        (req as any)?.data?.role === "ADMIN";
-      const requesterId = (req as any)?.user?.id || (req as any)?.data?.userId;
-      const createdById = (bundle as any)?.createdBy?._id?.toString?.();
-      if (
-        !isAdmin &&
-        createdById &&
-        requesterId &&
-        createdById !== requesterId
-      ) {
-        return ApiResponse(res, 403, "Access denied", false, null);
-      }
+    // Permission check
+    const isAdmin =
+      (req as any)?.user?.role === "ADMIN" ||
+      (req as any)?.data?.role === "ADMIN";
+    const requesterId = (req as any)?.user?.id || (req as any)?.data?.userId;
+    const createdById = (bundle as any)?.createdBy?._id?.toString?.();
 
-      // Get QR type information
-      const qrType = bundle.qrTypeId as any;
-      if (!qrType) {
-        return ApiResponse(res, 404, "QR type not found", false, null);
-      }
+    if (!isAdmin && createdById && requesterId && createdById !== requesterId) {
+      return ApiResponse(res, 403, "Access denied", false, null);
+    }
 
-      // Get all QRs in the bundle
-      const qrs = bundle.qrIds as any[];
-      if (!qrs || qrs.length === 0) {
-        return ApiResponse(res, 404, "No QRs found in bundle", false, null);
-      }
+    if (!bundle.qrTypeId) {
+      return ApiResponse(res, 404, "QR type not found", false, null);
+    }
 
-      // Import pdf-lib
-      const { PDFDocument, rgb, StandardFonts } = await import("pdf-lib");
-      const pdfDoc = await PDFDocument.create();
-      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    if (!bundle.qrIds || bundle.qrIds.length === 0) {
+      return ApiResponse(res, 404, "No QRs found in bundle", false, null);
+    }
 
-      // PDF layout settings
-      const margin = 50;
-      const qrsPerPage = 4; // 4 QRs per page (2 columns × 2 rows)
-      const columnsPerPage = 2; // 2 columns
-      const rowsPerPage = 2; // 2 rows per column
+    const pdfBuffer = await generateBundlePDF(bundle);
 
-      const totalPages = Math.ceil(qrs.length / qrsPerPage);
+    const fileName = `bundle_${bundleId}_qrs.pdf`;
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.setHeader("Content-Length", pdfBuffer.length);
 
-      // Generate PDF pages
-      for (let pageNum = 0; pageNum < totalPages; pageNum++) {
-        const page = pdfDoc.addPage();
-        const { width, height } = page.getSize();
+    res.send(pdfBuffer);
+  }
+);
 
-        // Header text
-        const headerText = `Bundle: ${bundle.bundleId}`;
-        const qrTypeText = `QR Type: ${qrType.qrName}`;
-        const totalQRsText = `Total QRs: ${qrs.length}`;
-        const createdByText = `Created by: ${(bundle.createdBy as any)?.firstName || ""} ${(bundle.createdBy as any)?.lastName || ""}`;
-        const pageText = `Page ${pageNum + 1} of ${totalPages}`;
+// Admin: Generate share link (auth required)
+export const generateShareLink = expressAsyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { bundleId } = req.params;
 
-        // Draw header
-        page.drawText(headerText, {
-          x: margin,
-          y: height - margin,
-          size: 18,
-          font: boldFont,
-          color: rgb(0, 0, 0),
-        });
+    const bundle = await Bundle.findOne({ bundleId });
+    if (!bundle) {
+      return ApiResponse(res, 404, "Bundle not found", false, null);
+    }
 
-        page.drawText(qrTypeText, {
-          x: margin,
-          y: height - margin - 25,
-          size: 12,
-          font: font,
-          color: rgb(0, 0, 0),
-        });
+    const token = crypto.randomBytes(24).toString("hex");
+    bundle.shareToken = token;
+    bundle.shareTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    await bundle.save();
 
-        page.drawText(totalQRsText, {
-          x: margin,
-          y: height - margin - 40,
-          size: 12,
-          font: font,
-          color: rgb(0, 0, 0),
-        });
+    const shareUrl = `${BACKEND_BASE_URL}/api/admin/share/bundles/${token}`;
+    return ApiResponse(res, 200, "Share link generated", true, { shareUrl });
+  }
+);
 
-        page.drawText(createdByText, {
-          x: margin,
-          y: height - margin - 55,
-          size: 12,
-          font: font,
-          color: rgb(0, 0, 0),
-        });
+// Public: Download via share link (no auth)
+export const downloadSharedBundle = expressAsyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { token } = req.params;
 
-        page.drawText(pageText, {
-          x: margin,
-          y: height - margin - 70,
-          size: 10,
-          font: font,
-          color: rgb(0.5, 0.5, 0.5),
-        });
+    const bundle = await Bundle.findOne({
+      shareToken: token,
+      shareTokenExpiresAt: { $gt: new Date() },
+    })
+      .populate("qrTypeId")
+      .populate({ path: "qrIds", select: "serialNumber qrUrl createdAt" })
+      .populate("createdBy", "firstName lastName")
+      .lean();
 
-        // Load the template image
-        const fs = await import("fs");
-        const path = await import("path");
-
-        // Use a more robust path resolution that works in both dev and prod
-        const templatePath = path.join(__dirname, "template.png");
-
-        let templateImage;
-        try {
-          const templateBuffer = fs.readFileSync(templatePath);
-          templateImage = await pdfDoc.embedPng(templateBuffer);
-          console.log("Template image loaded successfully");
-        } catch (error) {
-          console.error(
-            "Failed to load template image from path:",
-            templatePath,
-            error
-          );
-          // Try alternative path resolution
-          try {
-            const altTemplatePath = path.resolve(__dirname, "template.png");
-            console.log("Trying alternative template path:", altTemplatePath);
-            const templateBuffer = fs.readFileSync(altTemplatePath);
-            templateImage = await pdfDoc.embedPng(templateBuffer);
-            console.log(
-              "Template image loaded successfully from alternative path"
-            );
-          } catch (altError) {
-            console.error(
-              "Failed to load template image from alternative path:",
-              altError
-            );
-            // Continue without template if it fails to load
-          }
-        }
-
-        // Load QR type icon conditionally:
-        // If qrType name is "Test" use local policeTag.png; otherwise if qrIcon URL exists, use it.
-        let qrTypeIcon;
-        try {
-          if ((qrType as any)?.qrName === "Test") {
-            const policeIconPath = path.join(__dirname, "policeTag.png");
-            console.log("Police icon path:", policeIconPath);
-            const policeBuffer = fs.readFileSync(policeIconPath);
-            qrTypeIcon = await pdfDoc.embedPng(policeBuffer);
-            console.log("Police icon loaded successfully");
-          } else if ((qrType as any)?.qrIcon) {
-            const iconResponse = await fetch((qrType as any).qrIcon);
-            if (iconResponse.ok) {
-              const iconBuffer = await iconResponse.arrayBuffer();
-              qrTypeIcon = await pdfDoc.embedPng(iconBuffer);
-              console.log("QR type icon loaded successfully from URL");
-            }
-          }
-        } catch (error) {
-          console.error("Failed to load QR type icon:", error);
-          // Try alternative path resolution for policeTag.png
-          try {
-            if ((qrType as any)?.qrName === "Test") {
-              const altPoliceIconPath = path.resolve(
-                __dirname,
-                "policeTag.png"
-              );
-              console.log(
-                "Trying alternative police icon path:",
-                altPoliceIconPath
-              );
-              const policeBuffer = fs.readFileSync(altPoliceIconPath);
-              qrTypeIcon = await pdfDoc.embedPng(policeBuffer);
-              console.log(
-                "Police icon loaded successfully from alternative path"
-              );
-            }
-          } catch (altError) {
-            console.error(
-              "Failed to load QR type icon from alternative path:",
-              altError
-            );
-          }
-        }
-
-        // Calculate layout for QRs with template
-        const headerHeight = 80; // Reduced from 120 to 80 to give more space for templates
-        const availableHeight = height - 2 * margin - headerHeight;
-        const availableWidth = width - 2 * margin;
-
-        // Calculate spacing for 2x2 grid
-        const templateSize = 250; // Size of the template circle
-        const qrSize = 80; // Smaller QR size to fit in the bracket area
-        const qrTypeIconSize = 50; // Size for QR type icon
-
-        // Calculate spacing between columns and rows with more space
-        const columnSpacing = 50; // Increased spacing between columns
-        const rowSpacing = 60; // Fixed 60px spacing between rows
-
-        // Calculate starting X position to center the grid
-        const totalWidth =
-          columnsPerPage * templateSize + (columnsPerPage - 1) * columnSpacing;
-        const startX = margin + (availableWidth - totalWidth) / 2; // Center the grid
-
-        // Start QR placement below header with reduced spacing
-        const startY = height - margin - headerHeight + 60;
-
-        // Draw QRs for this page
-        for (let i = 0; i < qrsPerPage; i++) {
-          const qrIndex = pageNum * qrsPerPage + i;
-
-          // Stop if we've processed all QRs
-          if (qrIndex >= qrs.length) break;
-
-          const qr = qrs[qrIndex];
-
-          // Calculate grid position (2x2 layout)
-          const row = Math.floor(i / columnsPerPage); // 0 or 1
-          const col = i % columnsPerPage; // 0 or 1
-
-          // Calculate position for current QR
-          const x = startX + col * (templateSize + columnSpacing);
-          const y =
-            startY - row * (templateSize + rowSpacing) - templateSize / 2 + 20;
-
-          try {
-            // Draw template background if available
-            if (templateImage) {
-              page.drawImage(templateImage, {
-                x: x,
-                y: y - templateSize,
-                width: templateSize,
-                height: templateSize,
-              });
-            }
-
-            // Draw QR type icon above the QR code if available
-            if (qrTypeIcon) {
-              const iconX = x + (templateSize - qrTypeIconSize) / 2;
-              const iconY =
-                y - templateSize + (templateSize - qrSize) / 2 + qrSize - 20; // Position above QR code
-
-              page.drawImage(qrTypeIcon, {
-                x: iconX,
-                y: iconY,
-                width: qrTypeIconSize,
-                height: qrTypeIconSize,
-              });
-            }
-
-            // Fetch the QR image from Cloudinary
-            const response = await fetch(qr.qrUrl);
-            if (response.ok) {
-              const imageBuffer = await response.arrayBuffer();
-              const qrImage = await pdfDoc.embedPng(imageBuffer);
-
-              // Calculate QR position within template (center of the white circle where brackets are)
-              // The QR should be placed in the exact center of the template
-              const qrX = x + (templateSize - qrSize) / 2;
-              const qrY = y - templateSize + (templateSize - qrSize) / 2 - 40; // Moved down by subtracting 10px
-
-              // Draw QR code in the center of template (where the brackets are)
-              page.drawImage(qrImage, {
-                x: qrX,
-                y: qrY,
-                width: qrSize,
-                height: qrSize,
-              });
-            }
-          } catch (error) {
-            console.error(
-              `Failed to fetch QR image for ${qr.serialNumber}:`,
-              error
-            );
-
-            // Draw placeholder text if image fails to load
-            page.drawText(`QR ${qr.serialNumber}`, {
-              x: x + templateSize / 2 - 30,
-              y: y - templateSize / 2,
-              size: 16,
-              font: boldFont,
-              color: rgb(0.7, 0.7, 0.7),
-            });
-          }
-        }
-      }
-
-      // Generate PDF bytes
-      const pdfBytes = await pdfDoc.save();
-      const pdfBuffer = Buffer.from(pdfBytes);
-
-      // Set response headers for file download
-      const fileName = `bundle_${bundleId}_qrs.pdf`;
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename="${fileName}"`
-      );
-      res.setHeader("Content-Length", pdfBuffer.length);
-
-      // Send the PDF file
-      res.send(pdfBuffer);
-    } catch (error) {
-      console.error("Error downloading bundle QRs:", error);
+    if (!bundle) {
       return ApiResponse(
         res,
-        500,
-        "Failed to download bundle QRs",
+        404,
+        "Invalid or expired share link",
         false,
         null
       );
     }
+
+    const pdfBuffer = await generateBundlePDF(bundle);
+
+    const fileName = `bundle_${bundle.bundleId}_qrs.pdf`;
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.setHeader("Content-Length", pdfBuffer.length);
+
+    res.send(pdfBuffer);
   }
 );
