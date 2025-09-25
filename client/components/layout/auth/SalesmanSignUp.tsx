@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Lock, Mail, User, Car } from "lucide-react";
+import { Lock, Mail, User, Phone, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,25 +16,19 @@ import {
 import { toast } from "sonner";
 import { apiRequest } from "@/common/utils/apiClient";
 import { API_ENDPOINTS } from "@/common/constants/apiEndpoints";
-import { SITE_MAP } from "@/common/constants/siteMap";
-import Link from "next/link";
-import { VERIFY_EMAIL } from "@/common/constants/timer";
-import { useCooldownTimer } from "@/lib/hooks/useCooldownTimer";
+import { API_METHODS } from "@/common/constants/apiMethods";
 import { useRouter } from "next/navigation";
 import { omit } from "@/lib/helpers/data";
-import { API_METHODS } from "@/common/constants/apiMethods";
 
-export default function SignUp() {
+export default function SalesmanSignUp() {
   const router = useRouter();
-  const { startTimer } = useCooldownTimer(
-    VERIFY_EMAIL.TIMER_LOCAL_STORAGE_KEY,
-    VERIFY_EMAIL.TIMER_DURATION
-  );
-
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    phoneNumber: "",
+    altMobileNumber: "",
+    territory: "",
     password: "",
     confirmPassword: "",
   });
@@ -55,17 +49,20 @@ export default function SignUp() {
         return;
       }
 
+      // remove confirmPassword before sending
       const dataToSend = omit(formData, ["confirmPassword"]);
 
-      await apiRequest(API_METHODS.POST, API_ENDPOINTS.sign_up, dataToSend);
-
-      toast.success("Account created successfully! Please verify your email.");
-      startTimer();
-      router.push(
-        `${SITE_MAP.CHECK_EMAIL}?email=${encodeURIComponent(formData.email)}`
+      await apiRequest(
+        API_METHODS.POST,
+        API_ENDPOINTS.salesmanSignUp,
+        dataToSend
       );
+
+      toast.success("Salesperson account created successfully!");
+      router.push("/auth/login");
     } catch (error) {
-      console.log("Error in sign up: ", error);
+      console.log("Error in salesman sign up: ", error);
+      toast.error("Failed to create account. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -82,13 +79,13 @@ export default function SignUp() {
         <Card className="bg-card border-[var(--border)] shadow-lg">
           <CardHeader className="text-center">
             <motion.div whileHover={{ scale: 1.05 }} className="mx-auto mb-4">
-              <Car className="text-primary mx-auto h-12 w-12" />
+              <User className="text-primary mx-auto h-12 w-12" />
             </motion.div>
             <CardTitle className="text-card-foreground text-2xl font-bold">
-              Join Pahechan Karo
+              Salesman Registration
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              Connect vehicle owners seamlessly
+              Join as a salesperson and manage your territory
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -99,7 +96,7 @@ export default function SignUp() {
                     First Name
                   </Label>
                   <div className="relative">
-                    <User className="text-primary/70 absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2 transform" />
+                    <User className="text-primary/70 absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
                     <Input
                       id="firstName"
                       name="firstName"
@@ -117,7 +114,7 @@ export default function SignUp() {
                     Last Name
                   </Label>
                   <div className="relative">
-                    <User className="text-primary/70 absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2 transform" />
+                    <User className="text-primary/70 absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
                     <Input
                       id="lastName"
                       name="lastName"
@@ -131,12 +128,13 @@ export default function SignUp() {
                   </div>
                 </div>
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-card-foreground">
                   Email
                 </Label>
                 <div className="relative">
-                  <Mail className="text-primary/70 absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2 transform" />
+                  <Mail className="text-primary/70 absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
                   <Input
                     id="email"
                     name="email"
@@ -149,12 +147,72 @@ export default function SignUp() {
                   />
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumber" className="text-card-foreground">
+                  Phone Number
+                </Label>
+                <div className="relative">
+                  <Phone className="text-primary/70 absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
+                  <Input
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    type="tel"
+                    placeholder="9876543210"
+                    required
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
+                    className="bg-background border-[var(--input)] pl-9 focus-visible:ring-[var(--ring)]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="altMobileNumber"
+                  className="text-card-foreground"
+                >
+                  Alternate Mobile Number
+                </Label>
+                <div className="relative">
+                  <Phone className="text-primary/70 absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
+                  <Input
+                    id="altMobileNumber"
+                    name="altMobileNumber"
+                    type="tel"
+                    placeholder="9876543210"
+                    value={formData.altMobileNumber}
+                    onChange={handleChange}
+                    className="bg-background border-[var(--input)] pl-9 focus-visible:ring-[var(--ring)]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="territory" className="text-card-foreground">
+                  Territory
+                </Label>
+                <div className="relative">
+                  <MapPin className="text-primary/70 absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
+                  <Input
+                    id="territory"
+                    name="territory"
+                    type="text"
+                    placeholder="Noida"
+                    required
+                    value={formData.territory}
+                    onChange={handleChange}
+                    className="bg-background border-[var(--input)] pl-9 focus-visible:ring-[var(--ring)]"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-card-foreground">
                   Password
                 </Label>
                 <div className="relative">
-                  <Lock className="text-primary/70 absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2 transform" />
+                  <Lock className="text-primary/70 absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
                   <Input
                     id="password"
                     name="password"
@@ -167,6 +225,7 @@ export default function SignUp() {
                   />
                 </div>
               </div>
+
               <div className="space-y-2">
                 <Label
                   htmlFor="confirmPassword"
@@ -175,7 +234,7 @@ export default function SignUp() {
                   Confirm Password
                 </Label>
                 <div className="relative">
-                  <Lock className="text-primary/70 absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2 transform" />
+                  <Lock className="text-primary/70 absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
                   <Input
                     id="confirmPassword"
                     name="confirmPassword"
@@ -190,12 +249,12 @@ export default function SignUp() {
               </div>
               {/* Separate role switcher */}
               <div className="mt-4 text-sm text-muted-foreground">
-                Want to sign up as a salesman?{" "}
+                Want to sign up as a client?{" "}
                 <a
-                  href="/auth/salesman-sign-up"
+                  href="/auth/sign-up"
                   className="text-primary font-medium hover:underline"
                 >
-                  Salesman Sign Up
+                  Client Sign Up
                 </a>
               </div>
               <motion.div whileHover={{ scale: 1.01 }}>
@@ -211,24 +270,16 @@ export default function SignUp() {
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-muted-foreground text-sm">
-              Already have an account?{" "}
-              <Link
-                href={SITE_MAP.LOGIN}
+              Already registered?{" "}
+              <a
+                href="/auth/login"
                 className="text-primary font-medium hover:underline"
               >
                 Login
-              </Link>
+              </a>
             </p>
           </CardFooter>
         </Card>
-        <motion.div
-          className="text-muted-foreground mt-6 text-center text-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          <p>Scan QR codes to connect with vehicle owners instantly</p>
-        </motion.div>
       </motion.div>
     </div>
   );

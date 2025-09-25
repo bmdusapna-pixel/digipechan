@@ -25,6 +25,7 @@ import {
   updateSalesperson,
   updateSalespersonPassword,
   toggleSalespersonStatus,
+  toggleSalespersonVerification,
 } from "../../controllers/admin/salesperson/salespersonController";
 import {
   getSalespersonManagement,
@@ -163,6 +164,12 @@ adminRoute.put(
   authenticate,
   authorize([UserRoles.ADMIN]),
   toggleSalespersonStatus
+);
+adminRoute.put(
+  "/salesperson/:salespersonId/toggle-is-verified",
+  authenticate,
+  authorize([UserRoles.ADMIN]),
+  toggleSalespersonVerification
 );
 adminRoute.get(
   "/salesperson-management",

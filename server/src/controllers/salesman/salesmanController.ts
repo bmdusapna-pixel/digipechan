@@ -11,6 +11,91 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../../secrets";
 import { UserRoles } from "../../enums/enums";
 
+export const registerSalesperson = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    try {
+      const {
+        firstName,
+        lastName,
+        email,
+        phoneNumber,
+        password,
+        territory,
+        altMobileNumber,
+      } = req.body;
+
+      if (!firstName || !lastName || !email || !phoneNumber || !password) {
+        return ApiResponse(
+          res,
+          400,
+          "Missing required fields: firstName, lastName, email, phoneNumber, password",
+          false,
+          null
+        );
+      }
+
+      // Check if salesperson with email already exists
+      const existingSalesperson = await Salesman.findOne({ email });
+      if (existingSalesperson) {
+        return ApiResponse(
+          res,
+          400,
+          "Salesperson with this email already exists",
+          false,
+          null
+        );
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create salesperson (self-registered, not auto-verified)
+      const newSalesperson = await Salesman.create({
+        firstName,
+        lastName,
+        email,
+        phoneNumber,
+        altMobileNumber,
+        password: hashedPassword,
+        roles: [UserRoles.SALESPERSON],
+        isVerified: false, // <-- IMPORTANT difference
+        territory,
+        isActive: true,
+      });
+
+      // Return limited info (no password)
+      const salespersonResponse = {
+        _id: newSalesperson._id,
+        firstName: newSalesperson.firstName,
+        lastName: newSalesperson.lastName,
+        email: newSalesperson.email,
+        phoneNumber: newSalesperson.phoneNumber,
+        territory: newSalesperson.territory,
+        isActive: newSalesperson.isActive,
+        isVerified: newSalesperson.isVerified,
+        createdAt: newSalesperson?.createdAt || new Date(),
+      };
+
+      return ApiResponse(
+        res,
+        201,
+        "Salesperson registered successfully. Awaiting verification.",
+        true,
+        salespersonResponse
+      );
+    } catch (error) {
+      console.error("Error registering salesperson:", error);
+      return ApiResponse(
+        res,
+        500,
+        "Failed to register salesperson",
+        false,
+        null
+      );
+    }
+  }
+);
+
 // Get all active salesmen
 export const getAllSalesmen = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
@@ -249,10 +334,7 @@ export const getSalesmanStats = expressAsyncHandler(
       // Count sold QRs - should match the same logic as totalQRsSold
       // Only count QRs that are actually sold and activated by customers
       const soldQRs = await QRModel.countDocuments({
-        $and: [
-          { soldBySalesperson: salesmanId },
-          { isSold: true },
-        ],
+        $and: [{ soldBySalesperson: salesmanId }, { isSold: true }],
       });
       const stats = {
         salesmanInfo: {
@@ -301,6 +383,10 @@ export const salesmanLogin = expressAsyncHandler(
 
     if (!salesman.isActive) {
       return ApiResponse(res, 403, "Account is inactive", false, null);
+    }
+
+    if (!salesman.isVerified) {
+      return ApiResponse(res, 403, "Account is not verified", false, null);
     }
 
     const match = await bcrypt.compare(password, salesman.password);

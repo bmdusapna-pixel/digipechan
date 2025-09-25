@@ -13,7 +13,7 @@ export const API_ENDPOINTS = {
 
   // Salesperson Auth
   salespersonLogin: `${API_DOMAIN}/salesman/auth/login`,
-
+  salesmanSignUp: `${API_DOMAIN}/salesman/auth/sign-up`,
   // Salesman Dashboard
   salesmanStats: `${API_DOMAIN}/salesman/stats`,
   salesmanBundles: `${API_DOMAIN}/salesman/bundles`,
@@ -63,6 +63,8 @@ export const API_ENDPOINTS = {
   salespersonManagement: `${API_DOMAIN}/admin/salesperson-management`,
   salespersonCustomers: (id: string) =>
     `${API_DOMAIN}/admin/salesperson/${id}/customers`,
+  salespersonToggleVerify: (id: string) =>
+    `${API_DOMAIN}/admin/salesperson/${id}/toggle-is-verified`,
   salespersonBundles: (id: string) =>
     `${API_DOMAIN}/admin/salesperson/${id}/bundles`,
   adminTransferBundle: (bundleId: string) =>

@@ -14,7 +14,16 @@ import {
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { User, Phone, MapPin, Package, QrCode, Users, Eye, Shuffle } from "lucide-react";
+import {
+  User,
+  Phone,
+  MapPin,
+  Package,
+  QrCode,
+  Users,
+  Eye,
+  Shuffle,
+} from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -23,7 +32,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { apiRequest } from "@/common/utils/apiClient";
 import { API_ENDPOINTS } from "@/common/constants/apiEndpoints";
 import { useQuery } from "@tanstack/react-query";
@@ -38,6 +53,7 @@ type SalespersonData = {
   totalQRsAssigned: number;
   availableQRs: number;
   soldQRs: number;
+  isVerified: boolean;
   bundles: Array<{
     bundleId: string;
     qrTypeName: string;
@@ -74,8 +90,11 @@ export function SalespersonTable({
   );
   const [isCustomersDialogOpen, setIsCustomersDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
+  const [isVerificationDialogOpen, setIsVerificationDialogOpen] =
+    useState(false);
   const [transferBundleId, setTransferBundleId] = useState<string>("");
-  const [transferToSalespersonId, setTransferToSalespersonId] = useState<string>("");
+  const [transferToSalespersonId, setTransferToSalespersonId] =
+    useState<string>("");
   const [isTransferring, setIsTransferring] = useState(false);
 
   const { data: customerData, isLoading: isLoadingCustomers } = useQuery({
@@ -129,6 +148,26 @@ export function SalespersonTable({
             </>
           ) : (
             <span className="text-gray-400">-</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "isVerified",
+      header: "Verified",
+      cell: ({ row }: { row: { original: SalespersonData } }) => (
+        <div
+          onClick={() => {
+            setSelectedSalesperson(row.original._id);
+            setIsVerificationDialogOpen(true);
+          }}
+        >
+          {row.original.isVerified ? (
+            <Badge className="bg-green-100 text-green-800">Verified</Badge>
+          ) : (
+            <Badge variant="secondary" className="bg-red-100 text-red-700">
+              Unverified
+            </Badge>
           )}
         </div>
       ),
@@ -431,7 +470,10 @@ export function SalespersonTable({
       </Dialog>
 
       {/* Transfer Bundle Dialog */}
-      <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
+      <Dialog
+        open={isTransferDialogOpen}
+        onOpenChange={setIsTransferDialogOpen}
+      >
         <DialogContent className="sm:max-w-4xl w-[90vw] ">
           <DialogHeader>
             <DialogTitle className="flex items-center">
@@ -439,21 +481,25 @@ export function SalespersonTable({
               Transfer Bundle
             </DialogTitle>
             <DialogDescription>
-              Select a bundle assigned to this salesperson and a target salesperson.
+              Select a bundle assigned to this salesperson and a target
+              salesperson.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
               <div className="text-sm font-medium mb-1">Bundle</div>
-              <Select onValueChange={setTransferBundleId} value={transferBundleId}>
+              <Select
+                onValueChange={setTransferBundleId}
+                value={transferBundleId}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select bundle" />
                 </SelectTrigger>
                 <SelectContent>
                   {salespersonData
-                    .find((s) => s._id === selectedSalesperson)?.bundles
-                    ?.map((b) => (
+                    .find((s) => s._id === selectedSalesperson)
+                    ?.bundles?.map((b) => (
                       <SelectItem key={b.bundleId} value={b.bundleId}>
                         {b.bundleId} — {b.qrTypeName} ({b.qrCount} QRs)
                       </SelectItem>
@@ -463,7 +509,10 @@ export function SalespersonTable({
             </div>
             <div>
               <div className="text-sm font-medium mb-1">Transfer To</div>
-              <Select onValueChange={setTransferToSalespersonId} value={transferToSalespersonId}>
+              <Select
+                onValueChange={setTransferToSalespersonId}
+                value={transferToSalespersonId}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select salesperson" />
                 </SelectTrigger>
@@ -503,11 +552,68 @@ export function SalespersonTable({
                     setIsTransferring(false);
                   }
                 }}
-                disabled={isTransferring || !transferBundleId || !transferToSalespersonId}
+                disabled={
+                  isTransferring ||
+                  !transferBundleId ||
+                  !transferToSalespersonId
+                }
               >
                 {isTransferring ? "Transferring..." : "Transfer"}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Is Verified Dialog */}
+      <Dialog
+        open={isVerificationDialogOpen}
+        onOpenChange={setIsVerificationDialogOpen}
+      >
+        <DialogContent className="sm:max-w-md w-[90vw]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Users className="mr-2 h-5 w-5" />
+              Salesperson Verification
+            </DialogTitle>
+            <DialogDescription>
+              {`Change verification status for ${
+                salespersonData.find((s) => s._id === selectedSalesperson)?.name
+              }`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-6 flex justify-end space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsVerificationDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!selectedSalesperson) return;
+                try {
+                  await apiRequest(
+                    "PUT",
+                    API_ENDPOINTS.salespersonToggleVerify(selectedSalesperson)
+                  );
+                } finally {
+                  setIsVerificationDialogOpen(false);
+                }
+              }}
+              variant={
+                salespersonData.find((s) => s._id === selectedSalesperson)
+                  ?.isVerified
+                  ? "destructive"
+                  : "default"
+              }
+            >
+              {salespersonData.find((s) => s._id === selectedSalesperson)
+                ?.isVerified
+                ? "Deactivate"
+                : "Activate"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -13,7 +13,7 @@ export const getSalespersonManagement = expressAsyncHandler(
     try {
       const salespeople = await Salesman.find({ isActive: true })
         .select(
-          "_id firstName lastName email phoneNumber territory totalQRsSold assignedBundles"
+          "_id firstName lastName email phoneNumber territory totalQRsSold assignedBundles isVerified"
         )
         .sort({ firstName: 1 });
 
@@ -24,10 +24,9 @@ export const getSalespersonManagement = expressAsyncHandler(
             assignedTo: salesperson._id,
             status: "ASSIGNED",
           })
-            .populate<{ qrTypeId: Pick<INewQRType, "qrName" | "qrDescription"> }>(
-              "qrTypeId",
-              "qrName qrDescription"
-            )
+            .populate<{
+              qrTypeId: Pick<INewQRType, "qrName" | "qrDescription">;
+            }>("qrTypeId", "qrName qrDescription")
             .select("bundleId qrTypeId qrCount createdAt");
 
           // Count total QRs assigned
@@ -67,6 +66,7 @@ export const getSalespersonManagement = expressAsyncHandler(
             totalQRsAssigned,
             availableQRs,
             soldQRs,
+            isVerified: salesperson.isVerified,
             bundles: assignedBundles.map((bundle) => ({
               bundleId: bundle.bundleId,
               qrTypeName:
@@ -172,10 +172,12 @@ export const getSalespersonBundleDetails = expressAsyncHandler(
         assignedTo: salespersonId,
         status: "ASSIGNED",
       })
-        .populate<{ qrTypeId: Pick<INewQRType, "qrName" | "qrDescription" | "originalPrice" | "discountedPrice"> }>(
-          "qrTypeId",
-          "qrName qrDescription originalPrice discountedPrice"
-        )
+        .populate<{
+          qrTypeId: Pick<
+            INewQRType,
+            "qrName" | "qrDescription" | "originalPrice" | "discountedPrice"
+          >;
+        }>("qrTypeId", "qrName qrDescription originalPrice discountedPrice")
         .select("bundleId qrTypeId qrCount createdAt");
 
       const bundleDetails = await Promise.all(
@@ -233,22 +235,42 @@ export const transferBundleToSalesperson = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { bundleId } = req.params as { bundleId: string };
-      const { targetSalespersonId } = req.body as { targetSalespersonId: string };
+      const { targetSalespersonId } = req.body as {
+        targetSalespersonId: string;
+      };
 
       if (!bundleId || !targetSalespersonId) {
-        return ApiResponse(res, 400, "bundleId and targetSalespersonId are required", false, null);
+        return ApiResponse(
+          res,
+          400,
+          "bundleId and targetSalespersonId are required",
+          false,
+          null
+        );
       }
 
       // Validate target salesperson exists and is active
       const targetSalesperson = await Salesman.findById(targetSalespersonId);
       if (!targetSalesperson || targetSalesperson.isActive === false) {
-        return ApiResponse(res, 404, "Target salesperson not found or inactive", false, null);
+        return ApiResponse(
+          res,
+          404,
+          "Target salesperson not found or inactive",
+          false,
+          null
+        );
       }
 
       // Find bundle
       const bundle = await Bundle.findOne({ bundleId, status: "ASSIGNED" });
       if (!bundle) {
-        return ApiResponse(res, 404, "Bundle not found or not assigned", false, null);
+        return ApiResponse(
+          res,
+          404,
+          "Bundle not found or not assigned",
+          false,
+          null
+        );
       }
 
       // Block transfer if there are pending payment QRs in this bundle
@@ -267,7 +289,8 @@ export const transferBundleToSalesperson = expressAsyncHandler(
       }
 
       // Perform transfer (cast _id to ObjectId)
-      bundle.assignedTo = targetSalesperson._id as unknown as typeof bundle.assignedTo;
+      bundle.assignedTo =
+        targetSalesperson._id as unknown as typeof bundle.assignedTo;
       await bundle.save();
 
       return ApiResponse(res, 200, "Bundle transferred successfully", true, {
