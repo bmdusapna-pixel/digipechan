@@ -22,7 +22,7 @@ const constants_1 = require("../../../config/constants");
 exports.getSalespersonManagement = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const salespeople = yield salesman_1.Salesman.find({ isActive: true })
-            .select("_id firstName lastName email phoneNumber territory totalQRsSold assignedBundles")
+            .select("_id firstName lastName email phoneNumber territory totalQRsSold assignedBundles isVerified")
             .sort({ firstName: 1 });
         const salespersonData = yield Promise.all(salespeople.map((salesperson) => __awaiter(void 0, void 0, void 0, function* () {
             // Get assigned bundles with QR type info
@@ -63,6 +63,7 @@ exports.getSalespersonManagement = (0, express_async_handler_1.default)((req, re
                 totalQRsAssigned,
                 availableQRs,
                 soldQRs,
+                isVerified: salesperson.isVerified,
                 bundles: assignedBundles.map((bundle) => {
                     var _a;
                     return ({
@@ -191,7 +192,8 @@ exports.transferBundleToSalesperson = (0, express_async_handler_1.default)((req,
             return (0, ApiResponse_1.ApiResponse)(res, 400, "Cannot transfer bundle while there are QRs with pending payment", false, null);
         }
         // Perform transfer (cast _id to ObjectId)
-        bundle.assignedTo = targetSalesperson._id;
+        bundle.assignedTo =
+            targetSalesperson._id;
         yield bundle.save();
         return (0, ApiResponse_1.ApiResponse)(res, 200, "Bundle transferred successfully", true, {
             bundleId: bundle.bundleId,

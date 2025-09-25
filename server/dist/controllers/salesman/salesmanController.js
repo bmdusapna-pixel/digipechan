@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSoldQrsForSalesman = exports.salesmanLogin = exports.getSalesmanStats = exports.sellQRToCustomer = exports.getBundleQRs = exports.getSalesmanBundles = exports.getAllSalesmen = void 0;
+exports.getSoldQrsForSalesman = exports.salesmanLogin = exports.getSalesmanStats = exports.sellQRToCustomer = exports.getBundleQRs = exports.getSalesmanBundles = exports.getAllSalesmen = exports.registerSalesperson = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const salesman_1 = require("../../models/auth/salesman");
 const bundleModel_1 = require("../../models/qr-flow/bundleModel");
@@ -23,6 +23,51 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const secrets_1 = require("../../secrets");
 const enums_1 = require("../../enums/enums");
+exports.registerSalesperson = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { firstName, lastName, email, phoneNumber, password, territory, altMobileNumber, } = req.body;
+        if (!firstName || !lastName || !email || !phoneNumber || !password) {
+            return (0, ApiResponse_1.ApiResponse)(res, 400, "Missing required fields: firstName, lastName, email, phoneNumber, password", false, null);
+        }
+        // Check if salesperson with email already exists
+        const existingSalesperson = yield salesman_1.Salesman.findOne({ email });
+        if (existingSalesperson) {
+            return (0, ApiResponse_1.ApiResponse)(res, 400, "Salesperson with this email already exists", false, null);
+        }
+        // Hash password
+        const hashedPassword = yield bcrypt_1.default.hash(password, 10);
+        // Create salesperson (self-registered, not auto-verified)
+        const newSalesperson = yield salesman_1.Salesman.create({
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            altMobileNumber,
+            password: hashedPassword,
+            roles: [enums_1.UserRoles.SALESPERSON],
+            isVerified: false, // <-- IMPORTANT difference
+            territory,
+            isActive: true,
+        });
+        // Return limited info (no password)
+        const salespersonResponse = {
+            _id: newSalesperson._id,
+            firstName: newSalesperson.firstName,
+            lastName: newSalesperson.lastName,
+            email: newSalesperson.email,
+            phoneNumber: newSalesperson.phoneNumber,
+            territory: newSalesperson.territory,
+            isActive: newSalesperson.isActive,
+            isVerified: newSalesperson.isVerified,
+            createdAt: (newSalesperson === null || newSalesperson === void 0 ? void 0 : newSalesperson.createdAt) || new Date(),
+        };
+        return (0, ApiResponse_1.ApiResponse)(res, 201, "Salesperson registered successfully. Awaiting verification.", true, salespersonResponse);
+    }
+    catch (error) {
+        console.error("Error registering salesperson:", error);
+        return (0, ApiResponse_1.ApiResponse)(res, 500, "Failed to register salesperson", false, null);
+    }
+}));
 // Get all active salesmen
 exports.getAllSalesmen = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -165,10 +210,7 @@ exports.getSalesmanStats = (0, express_async_handler_1.default)((req, res) => __
         // Count sold QRs - should match the same logic as totalQRsSold
         // Only count QRs that are actually sold and activated by customers
         const soldQRs = yield qrModel_1.QRModel.countDocuments({
-            $and: [
-                { soldBySalesperson: salesmanId },
-                { isSold: true },
-            ],
+            $and: [{ soldBySalesperson: salesmanId }, { isSold: true }],
         });
         const stats = {
             salesmanInfo: {
@@ -200,6 +242,9 @@ exports.salesmanLogin = (0, express_async_handler_1.default)((req, res) => __awa
     }
     if (!salesman.isActive) {
         return (0, ApiResponse_1.ApiResponse)(res, 403, "Account is inactive", false, null);
+    }
+    if (!salesman.isVerified) {
+        return (0, ApiResponse_1.ApiResponse)(res, 403, "Account is not verified", false, null);
     }
     const match = yield bcrypt_1.default.compare(password, salesman.password);
     if (!match) {

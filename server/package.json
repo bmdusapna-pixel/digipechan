@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc && npm run copy-assets",
-    "copy-assets": "cp -r src/controllers/admin/orders/*.png dist/controllers/admin/orders/",
+    "copy-assets": "cp -r src/utils/*.png dist/utils/",
     "start": "node dist/index.js",
     "dev": "nodemon",
     "format": "prettier --write ."

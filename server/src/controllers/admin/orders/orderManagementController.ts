@@ -19,6 +19,7 @@ import {
   FRONTEND_BASE_URL_PROD_DOMAIN,
   NODE_ENV,
   BACKEND_BASE_URL,
+  BACKEND_PROD_URL,
 } from "../../../secrets";
 import expressAsyncHandler from "express-async-handler";
 import { QRMetaData } from "../../../models/qr-flow/newQRTypeModel";
@@ -432,7 +433,7 @@ export const generateShareLink = expressAsyncHandler(
     bundle.shareTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
     await bundle.save();
 
-    const shareUrl = `${BACKEND_BASE_URL}/api/admin/share/bundles/${token}`;
+    const shareUrl = `${BACKEND_PROD_URL}/api/admin/share/bundles/${token}`;
     return ApiResponse(res, 200, "Share link generated", true, { shareUrl });
   }
 );

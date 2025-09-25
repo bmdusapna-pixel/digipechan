@@ -51,6 +51,14 @@ const bundleSchema = new mongoose_1.Schema({
         type: Number,
         required: true,
     },
+    shareToken: {
+        type: String,
+        default: null,
+    },
+    shareTokenExpiresAt: {
+        type: Date,
+        default: null,
+    },
     createdBy: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: constants_1.COLLECTION_NAMES.USER,
@@ -67,13 +75,15 @@ const bundleSchema = new mongoose_1.Schema({
     },
     status: {
         type: String,
-        enum: ['UNASSIGNED', 'ASSIGNED'],
-        default: 'UNASSIGNED',
+        enum: ["UNASSIGNED", "ASSIGNED"],
+        default: "UNASSIGNED",
     },
-    qrIds: [{
+    qrIds: [
+        {
             type: mongoose_1.Schema.Types.ObjectId,
             ref: constants_1.COLLECTION_NAMES.GENERATED_QRS,
-        }],
+        },
+    ],
     pricePerQr: {
         type: Number,
         default: null,
