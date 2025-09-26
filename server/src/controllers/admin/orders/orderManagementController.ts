@@ -290,12 +290,20 @@ export const bulkGenerateQRs = expressAsyncHandler(
 export const getBundles = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const bundles = await Bundle.find({
-        status: "UNASSIGNED",
-      })
+      const bundles = await Bundle.find({})
         .populate("qrTypeId", "qrName qrDescription")
         .populate("createdBy", "firstName lastName email")
-        .select("bundleId qrTypeId qrCount createdBy status createdAt")
+        .populate({
+          path: "assignmentHistory.salesperson",
+          select: "firstName lastName email phoneNumber isVerified",
+        })
+        .populate({
+          path: "assignedTo",
+          select: "firstName lastName email phoneNumber isVerified",
+        })
+        .select(
+          "bundleId qrTypeId qrCount createdBy status createdAt assignmentHistory"
+        )
         .sort({ createdAt: -1 });
 
       return ApiResponse(

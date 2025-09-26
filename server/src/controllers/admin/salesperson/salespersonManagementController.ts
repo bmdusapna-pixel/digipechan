@@ -288,6 +288,14 @@ export const transferBundleToSalesperson = expressAsyncHandler(
         );
       }
 
+      if (bundle.assignedTo) {
+        // Record previous assignment before changing
+        bundle.assignmentHistory.push({
+          salesperson: bundle.assignedTo,
+          assignedAt: new Date(),
+        });
+      }
+
       // Perform transfer (cast _id to ObjectId)
       bundle.assignedTo =
         targetSalesperson._id as unknown as typeof bundle.assignedTo;
@@ -296,6 +304,7 @@ export const transferBundleToSalesperson = expressAsyncHandler(
       return ApiResponse(res, 200, "Bundle transferred successfully", true, {
         bundleId: bundle.bundleId,
         assignedTo: bundle.assignedTo,
+        assignmentHistory: bundle.assignmentHistory,
       });
     } catch (error) {
       console.error("Error transferring bundle:", error);

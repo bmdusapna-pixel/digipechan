@@ -9,6 +9,10 @@ export interface IBundle extends Document {
   shareTokenExpiresAt: Date;
   createdBy: mongoose.Types.ObjectId;
   assignedTo: mongoose.Types.ObjectId | null;
+  assignmentHistory: {
+    salesperson: mongoose.Types.ObjectId;
+    assignedAt: Date;
+  }[];
   deliveryType: string | null;
   status: "UNASSIGNED" | "ASSIGNED";
   qrIds: mongoose.Types.ObjectId[];
@@ -51,6 +55,16 @@ const bundleSchema = new Schema<IBundle>(
       ref: COLLECTION_NAMES.SALESMAN,
       default: null,
     },
+    assignmentHistory: [
+      {
+        salesperson: {
+          type: Schema.Types.ObjectId,
+          ref: COLLECTION_NAMES.SALESMAN,
+          required: true,
+        },
+        assignedAt: { type: Date, default: Date.now },
+      },
+    ],
     deliveryType: {
       type: String,
       default: null,

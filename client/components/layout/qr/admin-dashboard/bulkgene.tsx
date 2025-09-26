@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -122,6 +122,30 @@ export default function BulkGenerationForm() {
   const [selectedQuestions, setSelectedQuestions] = useState<QRTagQuestion[]>(
     []
   );
+  const [selectedBundleHistory, setSelectedBundleHistory] = useState<{
+    assignedTo: {
+      _id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      phoneNumber: string;
+      isVerified: boolean;
+    } | null;
+    assignmentHistory: {
+      _id: string;
+      assignedAt: string;
+      salesperson: {
+        _id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        phoneNumber: string;
+        isVerified: boolean;
+      };
+    }[];
+  } | null>(null);
+
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const {
     data: qrTypes,
@@ -791,6 +815,26 @@ export default function BulkGenerationForm() {
                           qrCount: number;
                           status: string;
                           createdBy: { firstName: string; lastName: string };
+                          assignedTo: {
+                            _id: string;
+                            firstName: string;
+                            lastName: string;
+                            email: string;
+                            phoneNumber: string;
+                            isVerified: boolean;
+                          } | null;
+                          assignmentHistory: {
+                            _id: string;
+                            assignedAt: string;
+                            salesperson: {
+                              _id: string;
+                              firstName: string;
+                              lastName: string;
+                              email: string;
+                              phoneNumber: string;
+                              isVerified: boolean;
+                            };
+                          }[];
                           createdAt: string;
                         }) => (
                           <TableRow key={bundle._id}>
@@ -804,7 +848,16 @@ export default function BulkGenerationForm() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge variant="secondary">{bundle.status}</Badge>
+                              {bundle.status === "UNASSIGNED" && (
+                                <Badge className="bg-gray-100 text-gray-800">
+                                  Unassigned
+                                </Badge>
+                              )}
+                              {bundle.status === "ASSIGNED" && (
+                                <Badge className="bg-blue-100 text-blue-800">
+                                  Assigned
+                                </Badge>
+                              )}
                             </TableCell>
                             <TableCell>
                               {bundle.createdBy?.firstName}{" "}
@@ -815,21 +868,34 @@ export default function BulkGenerationForm() {
                             </TableCell>
                             <TableCell>
                               <div className="flex gap-2">
-                                <Button
-                                  size="sm"
-                                  onClick={() =>
-                                    setSelectedBundle(bundle.bundleId)
-                                  }
-                                  variant={
-                                    selectedBundle === bundle.bundleId
-                                      ? "default"
-                                      : "outline"
-                                  }
-                                >
-                                  {selectedBundle === bundle.bundleId
-                                    ? "Selected"
-                                    : "Select"}
-                                </Button>
+                                {bundle.status === "UNASSIGNED" ? (
+                                  <Button
+                                    size="sm"
+                                    onClick={() =>
+                                      setSelectedBundle(bundle.bundleId)
+                                    }
+                                    variant={
+                                      selectedBundle === bundle.bundleId
+                                        ? "default"
+                                        : "outline"
+                                    }
+                                  >
+                                    {selectedBundle === bundle.bundleId
+                                      ? "Selected"
+                                      : "Select"}
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedBundleHistory(bundle);
+                                      setHistoryOpen(true);
+                                    }}
+                                  >
+                                    History
+                                  </Button>
+                                )}
                               </div>
                             </TableCell>
                             <TableCell className="space-x-2">
@@ -1372,6 +1438,96 @@ export default function BulkGenerationForm() {
                   Cancel
                 </Button>
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="max-w-5xl sm:max-w-auto max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Assignment History</DialogTitle>
+            <DialogDescription>
+              Past salespeople assigned to this bundle
+            </DialogDescription>
+          </DialogHeader>
+          {selectedBundleHistory?.assignedTo ? (
+            <div className="bg-blue-50 p-4 rounded-md mb-4 border border-blue-200">
+              <h4 className="font-medium mb-2">Current Salesperson</h4>
+              <div className="text-sm space-y-1">
+                <p>
+                  <span className="font-medium">Name:</span>{" "}
+                  {selectedBundleHistory.assignedTo.firstName}{" "}
+                  {selectedBundleHistory.assignedTo.lastName}
+                </p>
+                <p>
+                  <span className="font-medium">Email:</span>{" "}
+                  {selectedBundleHistory.assignedTo.email}
+                </p>
+                <p>
+                  <span className="font-medium">Phone:</span>{" "}
+                  {selectedBundleHistory.assignedTo.phoneNumber}
+                </p>
+                <p>
+                  <span className="font-medium">Status:</span>{" "}
+                  {selectedBundleHistory.assignedTo.isVerified ? (
+                    <Badge className="bg-green-100 text-green-800">
+                      Verified
+                    </Badge>
+                  ) : (
+                    <Badge variant="destructive">Unverified</Badge>
+                  )}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 mb-4">
+              No current salesperson assigned.
+            </p>
+          )}
+          {selectedBundleHistory?.assignmentHistory.length === 0 ? (
+            <p className="text-sm text-gray-500 p-4">No assignment history.</p>
+          ) : (
+            <div className="border rounded-md">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Verified</TableHead>
+                    <TableHead>Assigned At</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedBundleHistory?.assignmentHistory.map(
+                    (item, index) => (
+                      <TableRow key={item._id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>
+                          {item.salesperson.firstName}{" "}
+                          {item.salesperson.lastName}
+                        </TableCell>
+                        <TableCell>{item.salesperson.email}</TableCell>
+                        <TableCell>{item.salesperson.phoneNumber}</TableCell>
+                        <TableCell>
+                          {item.salesperson.isVerified ? (
+                            <Badge className="bg-green-100 text-green-800">
+                              Verified
+                            </Badge>
+                          ) : (
+                            <Badge variant="destructive">Unverified</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(item.assignedAt).toLocaleString()}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  )}
+                </TableBody>
+              </Table>
             </div>
           )}
         </DialogContent>
