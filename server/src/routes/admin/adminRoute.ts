@@ -19,6 +19,7 @@ import {
   downloadBundleQRs,
   generateShareLink,
   downloadSharedBundle,
+  getBundleQRs,
 } from "../../controllers/admin/orders/orderManagementController";
 import {
   createSalesperson,
@@ -194,6 +195,13 @@ adminRoute.put(
   authenticate,
   authorize([UserRoles.ADMIN]),
   transferBundleToSalesperson
+);
+
+adminRoute.get(
+  "/bundle/:bundleId/qrs",
+  authenticate,
+  authorize([UserRoles.ADMIN]),
+  getBundleQRs
 );
 
 // Payment Ticket Management

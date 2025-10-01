@@ -480,3 +480,47 @@ export const downloadSharedBundle = expressAsyncHandler(
     res.send(pdfBuffer);
   }
 );
+// Get QRs in a specific bundle for salesman
+export const getBundleQRs = expressAsyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { bundleId } = req.params;
+
+      // Verify bundle belongs to this salesman
+      const bundle = await Bundle.findOne({
+        bundleId,
+      }).populate("qrTypeId", "qrName");
+
+      if (!bundle) {
+        return ApiResponse(
+          res,
+          403,
+          "Bundle not found or not assigned to you",
+          false,
+          null
+        );
+      }
+
+      const qrs = await QRModel.find({ bundleId })
+        .populate("qrTypeId", "qrName qrDescription")
+        .select(
+          "_id serialNumber qrTypeId qrStatus qrUrl createdAt createdFor price isSold soldBySalesperson"
+        )
+        .sort({ createdAt: -1 });
+
+      return ApiResponse(res, 200, "Bundle QRs fetched successfully", true, {
+        bundle: {
+          bundleId: bundle.bundleId,
+          qrCount: bundle.qrCount,
+          qrTypeName: (bundle as any)?.qrTypeId,
+          deliveryType: bundle.deliveryType,
+          pricePerQr: (bundle as any)?.pricePerQr ?? null,
+        },
+        qrs,
+      });
+    } catch (error) {
+      console.error("Error fetching bundle QRs:", error);
+      return ApiResponse(res, 500, "Failed to fetch bundle QRs", false, null);
+    }
+  }
+);
