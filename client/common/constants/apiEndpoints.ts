@@ -20,6 +20,9 @@ export const API_ENDPOINTS = {
   salesmanBundleQrs: (bundleId: string) =>
     `${API_DOMAIN}/salesman/bundle/${bundleId}/qrs`,
 
+  adminBundleQrs: (bundleId: string) =>
+    `${API_DOMAIN}/admin/bundle/${bundleId}/qrs`,
+
   // Create new qr type
   create_new_qr_type: `${API_DOMAIN}/qr-flow/create-new-type`,
   fetch_qrs_on_delivery_type: `${API_DOMAIN}/qr-flow/fetch-types`,

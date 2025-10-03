@@ -81,6 +81,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import TagTypeQuestionSelector from "./TagTypeQuestionSelector";
 import { QRTagType, QRTagQuestion } from "@/types/newQRType.types";
+import BundleDetails from "@/components/layout/qr/admin-dashboard/BundleDetails";
 
 export default function BulkGenerationForm() {
   const router = useRouter();
@@ -105,6 +106,9 @@ export default function BulkGenerationForm() {
     territory: "",
     altMobileNumber: "",
   });
+  const [isBundleDetails, setIsBundleDetails] = useState(false);
+  const [selectedBundleDetails, setSelectedBundleDetails] =
+    useState<string>("");
 
   // Payment ticket management state
   const [selectedTicket, setSelectedTicket] = useState<IPaymentTicket | null>(
@@ -122,6 +126,11 @@ export default function BulkGenerationForm() {
   const [selectedQuestions, setSelectedQuestions] = useState<QRTagQuestion[]>(
     []
   );
+
+  const handleSelectBundleDetails = (bundleId: string) => {
+    setIsBundleDetails(true);
+    setSelectedBundleDetails(bundleId);
+  };
   const [selectedBundleHistory, setSelectedBundleHistory] = useState<{
     assignedTo: {
       _id: string;
@@ -844,7 +853,13 @@ export default function BulkGenerationForm() {
                             <TableCell>{bundle.qrTypeId?.qrName}</TableCell>
                             <TableCell>
                               <Badge variant="outline">
-                                {bundle.qrCount} QRs
+                                <span
+                                  onClick={() =>
+                                    handleSelectBundleDetails(bundle.bundleId)
+                                  }
+                                >
+                                  {bundle.qrCount} QRs
+                                </span>
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -1232,7 +1247,6 @@ export default function BulkGenerationForm() {
           </Card>
         </TabsContent>
       </Tabs>
-
       {/* Payment Ticket Review Dialog */}
       <Dialog open={isTicketDialogOpen} onOpenChange={setIsTicketDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -1442,7 +1456,6 @@ export default function BulkGenerationForm() {
           )}
         </DialogContent>
       </Dialog>
-
       <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
         <DialogContent className="max-w-5xl sm:max-w-auto max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -1532,6 +1545,12 @@ export default function BulkGenerationForm() {
           )}
         </DialogContent>
       </Dialog>
+      <BundleDetails
+        bundleId={selectedBundleDetails}
+        open={isBundleDetails}
+        onOpenChange={setIsBundleDetails}
+      />
+      ;
     </div>
   );
 }
