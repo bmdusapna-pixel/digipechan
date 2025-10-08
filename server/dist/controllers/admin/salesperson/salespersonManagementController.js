@@ -191,6 +191,13 @@ exports.transferBundleToSalesperson = (0, express_async_handler_1.default)((req,
         if (pendingCount > 0) {
             return (0, ApiResponse_1.ApiResponse)(res, 400, "Cannot transfer bundle while there are QRs with pending payment", false, null);
         }
+        if (bundle.assignedTo) {
+            // Record previous assignment before changing
+            bundle.assignmentHistory.push({
+                salesperson: bundle.assignedTo,
+                assignedAt: new Date(),
+            });
+        }
         // Perform transfer (cast _id to ObjectId)
         bundle.assignedTo =
             targetSalesperson._id;
@@ -198,6 +205,7 @@ exports.transferBundleToSalesperson = (0, express_async_handler_1.default)((req,
         return (0, ApiResponse_1.ApiResponse)(res, 200, "Bundle transferred successfully", true, {
             bundleId: bundle.bundleId,
             assignedTo: bundle.assignedTo,
+            assignmentHistory: bundle.assignmentHistory,
         });
     }
     catch (error) {

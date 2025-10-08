@@ -69,6 +69,16 @@ const bundleSchema = new mongoose_1.Schema({
         ref: constants_1.COLLECTION_NAMES.SALESMAN,
         default: null,
     },
+    assignmentHistory: [
+        {
+            salesperson: {
+                type: mongoose_1.Schema.Types.ObjectId,
+                ref: constants_1.COLLECTION_NAMES.SALESMAN,
+                required: true,
+            },
+            assignedAt: { type: Date, default: Date.now },
+        },
+    ],
     deliveryType: {
         type: String,
         default: null,

@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.downloadSharedBundle = exports.generateShareLink = exports.downloadBundleQRs = exports.assignBundleToSalesperson = exports.getBundles = exports.bulkGenerateQRs = exports.updateOrderInformation = exports.getAllOrderInformation = void 0;
+exports.getBundleQRs = exports.downloadSharedBundle = exports.generateShareLink = exports.downloadBundleQRs = exports.assignBundleToSalesperson = exports.getBundles = exports.bulkGenerateQRs = exports.updateOrderInformation = exports.getAllOrderInformation = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const ApiResponse_1 = require("../../../config/ApiResponse");
 const constants_1 = require("../../../config/constants");
@@ -224,12 +224,18 @@ exports.bulkGenerateQRs = (0, express_async_handler_1.default)((req, res) => __a
 }));
 exports.getBundles = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const bundles = yield bundleModel_1.Bundle.find({
-            status: "UNASSIGNED",
-        })
+        const bundles = yield bundleModel_1.Bundle.find({})
             .populate("qrTypeId", "qrName qrDescription")
             .populate("createdBy", "firstName lastName email")
-            .select("bundleId qrTypeId qrCount createdBy status createdAt")
+            .populate({
+            path: "assignmentHistory.salesperson",
+            select: "firstName lastName email phoneNumber isVerified",
+        })
+            .populate({
+            path: "assignedTo",
+            select: "firstName lastName email phoneNumber isVerified",
+        })
+            .select("bundleId qrTypeId qrCount createdBy status createdAt assignmentHistory")
             .sort({ createdAt: -1 });
         return (0, ApiResponse_1.ApiResponse)(res, 200, "Bundles fetched successfully", true, bundles);
     }
@@ -338,4 +344,36 @@ exports.downloadSharedBundle = (0, express_async_handler_1.default)((req, res) =
     res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
     res.setHeader("Content-Length", pdfBuffer.length);
     res.send(pdfBuffer);
+}));
+// Get QRs in a specific bundle for salesman
+exports.getBundleQRs = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { bundleId } = req.params;
+        // Verify bundle belongs to this salesman
+        const bundle = yield bundleModel_1.Bundle.findOne({
+            bundleId,
+        }).populate("qrTypeId", "qrName");
+        if (!bundle) {
+            return (0, ApiResponse_1.ApiResponse)(res, 403, "Bundle not found or not assigned to you", false, null);
+        }
+        const qrs = yield qrModel_1.QRModel.find({ bundleId })
+            .populate("qrTypeId", "qrName qrDescription")
+            .select("_id serialNumber qrTypeId qrStatus qrUrl createdAt createdFor price isSold soldBySalesperson")
+            .sort({ createdAt: -1 });
+        return (0, ApiResponse_1.ApiResponse)(res, 200, "Bundle QRs fetched successfully", true, {
+            bundle: {
+                bundleId: bundle.bundleId,
+                qrCount: bundle.qrCount,
+                qrTypeName: bundle === null || bundle === void 0 ? void 0 : bundle.qrTypeId,
+                deliveryType: bundle.deliveryType,
+                pricePerQr: (_a = bundle === null || bundle === void 0 ? void 0 : bundle.pricePerQr) !== null && _a !== void 0 ? _a : null,
+            },
+            qrs,
+        });
+    }
+    catch (error) {
+        console.error("Error fetching bundle QRs:", error);
+        return (0, ApiResponse_1.ApiResponse)(res, 500, "Failed to fetch bundle QRs", false, null);
+    }
 }));

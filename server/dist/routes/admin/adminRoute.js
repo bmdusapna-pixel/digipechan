@@ -41,6 +41,7 @@ exports.adminRoute.get("/salesperson-management", jwtAuthenticationMiddleware_1.
 exports.adminRoute.get("/salesperson/:salespersonId/customers", jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([enums_1.UserRoles.ADMIN]), salespersonManagementController_1.getSalespersonCustomers);
 exports.adminRoute.get("/salesperson/:salespersonId/bundles", jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([enums_1.UserRoles.ADMIN]), salespersonManagementController_1.getSalespersonBundleDetails);
 exports.adminRoute.put("/bundles/:bundleId/transfer", jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([enums_1.UserRoles.ADMIN]), salespersonManagementController_1.transferBundleToSalesperson);
+exports.adminRoute.get("/bundle/:bundleId/qrs", jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([enums_1.UserRoles.ADMIN]), orderManagementController_1.getBundleQRs);
 // Payment Ticket Management
 exports.adminRoute.get("/payment-tickets", jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([enums_1.UserRoles.ADMIN]), paymentTicketController_1.getAllPaymentTickets);
 exports.adminRoute.put("/payment-tickets/:ticketId/status", jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([enums_1.UserRoles.ADMIN]), paymentTicketController_1.updatePaymentTicketStatus);
