@@ -2,23 +2,40 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Phone, MessageSquare, Video, AlertCircle, CheckCircle } from "lucide-react";
+import {
+  Phone,
+  MessageSquare,
+  Video,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
 import { scanQR, QRScanResponse } from "@/lib/api/qr/scanQr";
 import { QRTagQuestion } from "@/types/newQRType.types";
 import { toast } from "sonner";
 
-
 export default function QRScanPage() {
   const params = useParams();
   const qrId = params.qrId as string;
-  const [selectedQuestion, setSelectedQuestion] = useState<QRTagQuestion | null>(null);
-  const [showCommunicationOptions, setShowCommunicationOptions] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] =
+    useState<QRTagQuestion | null>(null);
+  const [showCommunicationOptions, setShowCommunicationOptions] =
+    useState(false);
 
-  const { data: qrData, isLoading, error } = useQuery({
+  const {
+    data: qrData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["qr-scan", qrId],
     queryFn: () => scanQR(qrId),
     enabled: !!qrId,
@@ -30,7 +47,7 @@ export default function QRScanPage() {
     toast.success("Question selected! Choose how to contact the owner.");
   };
 
-  const handleCommunication = (type: 'call' | 'message' | 'video') => {
+  const handleCommunication = (type: "call" | "message" | "video") => {
     if (!qrData?.qr?.createdFor) {
       toast.error("Owner information not available");
       return;
@@ -38,23 +55,23 @@ export default function QRScanPage() {
 
     const owner = qrData.qr.createdFor;
     const ownerName = `${owner.firstName} ${owner.lastName}`;
-    
+
     switch (type) {
-      case 'call':
+      case "call":
         if (owner.mobileNumber) {
-          window.open(`tel:${owner.mobileNumber}`, '_self');
+          window.open(`tel:${owner.mobileNumber}`, "_self");
         } else {
           toast.error("Phone number not available");
         }
         break;
-      case 'message':
+      case "message":
         if (owner.mobileNumber) {
-          window.open(`sms:${owner.mobileNumber}`, '_self');
+          window.open(`sms:${owner.mobileNumber}`, "_self");
         } else {
           toast.error("Phone number not available");
         }
         break;
-      case 'video':
+      case "video":
         toast.info("Video calling feature coming soon!");
         break;
     }
@@ -87,7 +104,7 @@ export default function QRScanPage() {
     );
   }
 
-    const { qr } = qrData as QRScanResponse;
+  const { qr } = qrData as QRScanResponse;
   const questions = qr.questions || qr.qrTypeId?.questions || [];
   const tagType = qr.qrTypeId?.tagType;
 
@@ -100,9 +117,12 @@ export default function QRScanPage() {
             <div className="flex items-center justify-center mb-4">
               <CheckCircle className="h-12 w-12 text-green-500" />
             </div>
-            <CardTitle className="text-2xl">QR Code Scanned Successfully</CardTitle>
+            <CardTitle className="text-2xl">
+              QR Code Scanned Successfully
+            </CardTitle>
             <CardDescription>
-              Serial Number: <span className="font-mono font-semibold">{qr.serialNumber}</span>
+              Serial Number:{" "}
+              <span className="font-mono font-semibold">{qr.serialNumber}</span>
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -110,9 +130,15 @@ export default function QRScanPage() {
               <h3 className="text-lg font-semibold">{qr.qrTypeId.qrName}</h3>
               {tagType && (
                 <Badge variant="outline" className="text-sm">
-                  {tagType.replace('_TAG', ' Tag')}
+                  {tagType.replace("_TAG", " Tag")}
                 </Badge>
               )}
+              <p>
+                Name:{" "}
+                <span className="font-mono font-semibold">
+                  {qr.customerName}
+                </span>
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -123,7 +149,8 @@ export default function QRScanPage() {
             <CardHeader>
               <CardTitle className="text-xl">What's the issue?</CardTitle>
               <CardDescription>
-                Please select the most appropriate option to help the owner understand the situation.
+                Please select the most appropriate option to help the owner
+                understand the situation.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -154,7 +181,8 @@ export default function QRScanPage() {
             <CardHeader>
               <CardTitle className="text-xl">Contact the Owner</CardTitle>
               <CardDescription>
-                You selected: <span className="font-semibold">{selectedQuestion.text}</span>
+                You selected:{" "}
+                <span className="font-semibold">{selectedQuestion.text}</span>
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -164,11 +192,11 @@ export default function QRScanPage() {
                     Choose how you'd like to contact the owner about this issue.
                   </p>
                 </div>
-                
+
                 <div className="grid gap-3">
                   {qr.voiceCallsAllowed && (
                     <Button
-                      onClick={() => handleCommunication('call')}
+                      onClick={() => handleCommunication("call")}
                       className="flex items-center gap-3 h-12"
                       variant="outline"
                     >
@@ -176,10 +204,10 @@ export default function QRScanPage() {
                       <span>Make a Phone Call</span>
                     </Button>
                   )}
-                  
+
                   {qr.textMessagesAllowed && (
                     <Button
-                      onClick={() => handleCommunication('message')}
+                      onClick={() => handleCommunication("message")}
                       className="flex items-center gap-3 h-12"
                       variant="outline"
                     >
@@ -187,10 +215,10 @@ export default function QRScanPage() {
                       <span>Send a Text Message</span>
                     </Button>
                   )}
-                  
+
                   {qr.videoCallsAllowed && (
                     <Button
-                      onClick={() => handleCommunication('video')}
+                      onClick={() => handleCommunication("video")}
                       className="flex items-center gap-3 h-12"
                       variant="outline"
                     >
@@ -225,9 +253,15 @@ export default function QRScanPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <p><span className="font-medium">Name:</span> {qr.createdFor.firstName} {qr.createdFor.lastName}</p>
+                <p>
+                  <span className="font-medium">Name:</span>{" "}
+                  {qr.createdFor.firstName} {qr.createdFor.lastName}
+                </p>
                 {qr.createdFor.mobileNumber && (
-                  <p><span className="font-medium">Phone:</span> {qr.createdFor.mobileNumber}</p>
+                  <p>
+                    <span className="font-medium">Phone:</span>{" "}
+                    {qr.createdFor.mobileNumber}
+                  </p>
                 )}
               </div>
             </CardContent>
@@ -240,14 +274,15 @@ export default function QRScanPage() {
             <CardHeader>
               <CardTitle className="text-xl">Contact the Owner</CardTitle>
               <CardDescription>
-                This QR code doesn't have specific questions configured. You can still contact the owner directly.
+                This QR code doesn't have specific questions configured. You can
+                still contact the owner directly.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-3">
                 {qr.voiceCallsAllowed && (
                   <Button
-                    onClick={() => handleCommunication('call')}
+                    onClick={() => handleCommunication("call")}
                     className="flex items-center gap-3 h-12"
                     variant="outline"
                   >
@@ -255,10 +290,10 @@ export default function QRScanPage() {
                     <span>Make a Phone Call</span>
                   </Button>
                 )}
-                
+
                 {qr.textMessagesAllowed && (
                   <Button
-                    onClick={() => handleCommunication('message')}
+                    onClick={() => handleCommunication("message")}
                     className="flex items-center gap-3 h-12"
                     variant="outline"
                   >
@@ -266,10 +301,10 @@ export default function QRScanPage() {
                     <span>Send a Text Message</span>
                   </Button>
                 )}
-                
+
                 {qr.videoCallsAllowed && (
                   <Button
-                    onClick={() => handleCommunication('video')}
+                    onClick={() => handleCommunication("video")}
                     className="flex items-center gap-3 h-12"
                     variant="outline"
                   >
