@@ -1,30 +1,31 @@
-import { z } from 'zod';
-import { mobileNumberSchema } from '../../common/schemas';
+import { z } from "zod";
+import { mobileNumberSchema } from "../../common/schemas";
 
 export const signUpSchema = z.object({
   firstName: z
     .string()
-    .regex(/^[A-Za-z]+$/, { message: 'First name must contain only alphabets' })
-    .nonempty({ message: 'First Name cannot be empty!' }),
+    .regex(/^[A-Za-z]+$/, { message: "First name must contain only alphabets" })
+    .nonempty({ message: "First Name cannot be empty!" }),
   lastName: z
     .string()
-    .regex(/^[A-Za-z]+$/, { message: 'Last name must contain only alphabets' })
-    .nonempty({ message: 'Last Name cannot be empty!' }),
-  email: z.string().email({ message: 'Invalid email format' }),
-  // phoneNumber : mobileNumberSchema,
+    .regex(/^[A-Za-z]+$/, { message: "Last name must contain only alphabets" })
+    .nonempty({ message: "Last Name cannot be empty!" }),
+  email: z.string().email({ message: "Invalid email format" }),
   password: z
     .string()
-    .min(6, { message: 'Password should have 6 or more characters' })
-    .nonempty({ message: 'Password cannot be empty' }),
-    _tk : z.string().optional()
+    .min(6, { message: "Password should have 6 or more characters" })
+    .nonempty({ message: "Password cannot be empty" }),
+  _tk: z.string().optional(),
+  token: z.string().optional(),
 });
 
 export const loginSchema = z.object({
-  email: z.string().email({ message: 'Invalid email format' }),
+  email: z.string().email({ message: "Invalid email format" }),
   password: z
     .string()
-    .min(6, { message: 'Password should have 6 or more characters' })
-    .nonempty({ message: 'Password cannot be empty' }),
+    .min(6, { message: "Password should have 6 or more characters" })
+    .nonempty({ message: "Password cannot be empty" }),
+  token: z.string().optional(),
 });
 
 export const forgotPasswordSchema = z.object({
@@ -35,8 +36,8 @@ export const resetPasswordSchema = z.object({
   token: z.string(),
   password: z
     .string()
-    .min(6, { message: 'Password should have 6 or more characters' })
-    .nonempty({ message: 'Password cannot be empty' }),
+    .min(6, { message: "Password should have 6 or more characters" })
+    .nonempty({ message: "Password cannot be empty" }),
 });
 
 export const verifyEmailSchema = z.object({

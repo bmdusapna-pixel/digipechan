@@ -83,6 +83,15 @@ export const signUp = expressAsyncHandler(
         }
       }
 
+      if (validation.data.token) {
+        const set = new Set([
+          ...(user.deviceTokens || []),
+          validation.data.token,
+        ]);
+        user.deviceTokens = Array.from(set).slice(-5);
+        await user.save();
+      }
+
       const verificationToken = jwt.sign({ userId: user._id }, JWT_SECRET!, {
         expiresIn: "1h",
       });
@@ -181,6 +190,14 @@ export const login = expressAsyncHandler(
           null,
           "Unverified Email"
         );
+      if (validation.data.token) {
+        const set = new Set([
+          ...(user.deviceTokens || []),
+          validation.data.token,
+        ]);
+        user.deviceTokens = Array.from(set).slice(-5);
+        await user.save();
+      }
 
       const token = jwt.sign(
         { userId: user._id, roles: user.roles },
@@ -480,7 +497,7 @@ export const getUserFromUserId = expressAsyncHandler(
     }));
 
     const response = {
-      userId:userId,
+      userId: userId,
       firstName: user.firstName,
       lastName: user.lastName,
       avatar: user.avatar || null,
@@ -515,7 +532,15 @@ export const updateUserProfile = expressAsyncHandler(
       return ApiResponse(res, 401, "Unauthorized", false);
     }
 
-    const { firstName, lastName, phoneNumber,about, altMobileNumber, vehicleNumber, vehicleType } = req.body;
+    const {
+      firstName,
+      lastName,
+      phoneNumber,
+      about,
+      altMobileNumber,
+      vehicleNumber,
+      vehicleType,
+    } = req.body;
     const file = req.file;
 
     const user = await User.findById(userId);
@@ -566,7 +591,7 @@ export const resetUserProfile = expressAsyncHandler(
     const userId = req.data?.userId;
 
     if (!userId) {
-      return ApiResponse(res, 401, 'Unauthorized', false, null);
+      return ApiResponse(res, 401, "Unauthorized", false, null);
     }
 
     const resetFields = {
@@ -577,20 +602,18 @@ export const resetUserProfile = expressAsyncHandler(
       altMobileNumber: "",
       vehicleNumber: "",
       vehicleType: "",
-      about: ""
+      about: "",
     };
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      resetFields,
-      { new: true }
-    );
+    const user = await User.findByIdAndUpdate(userId, resetFields, {
+      new: true,
+    });
 
     if (!user) {
-      return ApiResponse(res, 404, 'User not found', false, null);
+      return ApiResponse(res, 404, "User not found", false, null);
     }
 
-    return ApiResponse(res, 200, 'Profile reset successfully', true, {
+    return ApiResponse(res, 200, "Profile reset successfully", true, {
       userData: {
         avatar: user.avatar,
         firstName: user.firstName,
@@ -599,8 +622,8 @@ export const resetUserProfile = expressAsyncHandler(
         altMobileNumber: user.altMobileNumber,
         vehicleNumber: user.vehicleNumber,
         vehicleType: user.vehicleType,
-        about: user.about
-      }
+        about: user.about,
+      },
     });
   }
 );
