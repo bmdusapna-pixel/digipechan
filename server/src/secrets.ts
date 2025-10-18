@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 
 export const PORT = process.env.PORT!;
 export const MONGODB_DATABASE_NAME = process.env.MONGODB_DATABASE_NAME!;
@@ -28,13 +28,15 @@ export const BACKEND_PROD_URL = process.env.BACKEND_PROD_URL!;
 export const PHONEPE_SALT_INDEX = process.env.PHONEPE_SALT_INDEX!;
 export const PHONEPE_SALT_KEY = process.env.PHONEPE_SALT_KEY!;
 export const PHONEPE_MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID!;
-export const EKQR_API_KEY = process.env.EQR_API_KEY!
-export const FRONTEND_SIGNUP_URL = process.env.FRONTEND_SIGNUP_URL!
-export const HASH_ID_SECRET_SALT = process.env.HASH_ID_SECRET_SALT!
-export const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID!
-export const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN!
-export const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER!
+export const EKQR_API_KEY = process.env.EQR_API_KEY!;
+export const FRONTEND_SIGNUP_URL = process.env.FRONTEND_SIGNUP_URL!;
+export const HASH_ID_SECRET_SALT = process.env.HASH_ID_SECRET_SALT!;
+export const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID!;
+export const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN!;
+export const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER!;
 export const RTOAPI = process.env.RTOAPI!;
-export const RTO_TOKEN =process.env.RTO_TOKEN!;
-export const salessquared_api_key=process.env.salessquared_api_key!;
-export const CLOUD_PHONE=process.env.CLOUD_PHONE!;
+export const RTO_TOKEN = process.env.RTO_TOKEN!;
+export const salessquared_api_key = process.env.salessquared_api_key!;
+export const CLOUD_PHONE = process.env.CLOUD_PHONE!;
+export const AGORA_APP_ID = process.env.AGORA_APP_ID || "";
+export const AGORA_APP_CERT = process.env.AGORA_APP_CERT || "";

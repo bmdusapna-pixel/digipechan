@@ -22,12 +22,17 @@ import {
 import { scanQR, QRScanResponse } from "@/lib/api/qr/scanQr";
 import { QRTagQuestion } from "@/types/newQRType.types";
 import { toast } from "sonner";
+import VideoCall from "@/components/layout/call/VideoCall";
 
 export default function QRScanPage() {
   const params = useParams();
   const qrId = params.qrId as string;
   const [selectedQuestion, setSelectedQuestion] =
     useState<QRTagQuestion | null>(null);
+  const [mediaType, setMediaType] = useState<"none" | "audio" | "video">(
+    "none"
+  );
+
   const [showCommunicationOptions, setShowCommunicationOptions] =
     useState(false);
 
@@ -45,6 +50,9 @@ export default function QRScanPage() {
     setSelectedQuestion(question);
     setShowCommunicationOptions(true);
     toast.success("Question selected! Choose how to contact the owner.");
+  };
+  const handleCall = (type: "none" | "video" | "audio") => {
+    setMediaType(type);
   };
 
   const handleCommunication = (type: "call" | "message" | "video") => {
@@ -110,6 +118,16 @@ export default function QRScanPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
+      {mediaType !== "none" && qr?.createdFor?._id ? (
+        <div className="fixed top-0 left-0 min-h-screen min-w-screen">
+          <VideoCall
+            channel={qr.createdFor._id}
+            videoCallsAllowed={qr.videoCallsAllowed}
+            mediaType={mediaType}
+            setMediaType={setMediaType}
+          />
+        </div>
+      ) : null}
       <div className="max-w-2xl mx-auto space-y-6">
         {/* QR Information Header */}
         <Card>
@@ -282,7 +300,7 @@ export default function QRScanPage() {
               <div className="grid gap-3">
                 {qr.voiceCallsAllowed && (
                   <Button
-                    onClick={() => handleCommunication("call")}
+                    onClick={() => handleCall("audio")}
                     className="flex items-center gap-3 h-12"
                     variant="outline"
                   >
@@ -293,7 +311,7 @@ export default function QRScanPage() {
 
                 {qr.textMessagesAllowed && (
                   <Button
-                    onClick={() => handleCommunication("message")}
+                    onClick={() => handleCall("none")}
                     className="flex items-center gap-3 h-12"
                     variant="outline"
                   >
@@ -304,7 +322,7 @@ export default function QRScanPage() {
 
                 {qr.videoCallsAllowed && (
                   <Button
-                    onClick={() => handleCommunication("video")}
+                    onClick={() => handleCall("video")}
                     className="flex items-center gap-3 h-12"
                     variant="outline"
                   >
