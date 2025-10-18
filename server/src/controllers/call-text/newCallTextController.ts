@@ -17,7 +17,7 @@ export const generateToken = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const channelName = String(req.query.channel) || "demo-channel";
     const uid = req.data?.userId;
-    const { qrId, userName } = req.body;
+    const { qrId, userName, mediaType } = req.body;
 
     if (!uid) {
       return ApiResponse(
@@ -71,7 +71,8 @@ export const generateToken = expressAsyncHandler(
               {
                 qrId: String(qr._id),
                 roomId: channelName,
-                userName: userName || "",
+                callerName: userName || "",
+                type: mediaType,
               }
             );
             notificationSent = true;

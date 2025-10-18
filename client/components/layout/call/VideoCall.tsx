@@ -104,6 +104,7 @@ export default function VideoCall({
     }>("POST", `${API_DOMAIN}/token?channel=${channel}`, {
       qrId: qr._id,
       userName: qr.customerName || "Unknown User",
+      mediaType: mediaType,
     });
 
     if (!tokenResp) throw new Error("Failed to fetch token");
