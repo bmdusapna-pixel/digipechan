@@ -122,6 +122,7 @@ export default function QRScanPage() {
         <div className="fixed top-0 left-0 min-h-screen min-w-screen">
           <VideoCall
             channel={qr.createdFor._id}
+            qr={qr}
             videoCallsAllowed={qr.videoCallsAllowed}
             mediaType={mediaType}
             setMediaType={setMediaType}

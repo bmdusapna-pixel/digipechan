@@ -9,6 +9,10 @@ interface VideoCallProps {
   videoCallsAllowed: boolean | undefined;
   mediaType: "none" | "audio" | "video";
   setMediaType: (type: "none" | "audio" | "video") => void;
+  qr: {
+    _id: string;
+    customerName?: string;
+  };
 }
 
 interface RemoteUser {
@@ -22,6 +26,7 @@ export default function VideoCall({
   videoCallsAllowed,
   mediaType,
   setMediaType,
+  qr,
 }: VideoCallProps) {
   const clientRef = useRef<any>(null);
   const localAudioTrackRef = useRef<any>(null);
@@ -90,12 +95,16 @@ export default function VideoCall({
   const joinChannel = async () => {
     if (!AgoraRTC) return;
 
-    const tokenResp = await apiRequest<{ rtcToken: string; uid: string }>(
-      "GET",
-      `${API_DOMAIN}/token`,
-      {},
-      { channel }
-    );
+    const tokenResp = await apiRequest<{
+      rtcToken: string;
+      rtmToken: string;
+      uid: string;
+      channelName: string;
+      notificationSent: boolean;
+    }>("POST", `${API_DOMAIN}/token?channel=${channel}`, {
+      qrId: qr._id,
+      userName: qr.customerName || "Unknown User",
+    });
 
     if (!tokenResp) throw new Error("Failed to fetch token");
     const { rtcToken, uid } = tokenResp;

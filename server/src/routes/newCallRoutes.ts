@@ -7,7 +7,7 @@ import { UserRoles } from "../enums/enums";
 import { generateToken } from "../controllers/call-text/newCallTextController";
 export const newCallRoutes = express.Router();
 
-newCallRoutes.get(
+newCallRoutes.post(
   "/",
   authenticate,
   authorize([UserRoles.BASIC_USER]),
