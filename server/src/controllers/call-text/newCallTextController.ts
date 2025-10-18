@@ -33,7 +33,7 @@ export const generateToken = expressAsyncHandler(
     const expirationInSeconds = 3600;
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const privilegeExpiredTs = currentTimestamp + expirationInSeconds;
-    const rtcToken = RtcTokenBuilder.buildTokenWithUid(
+    const rtcToken = RtcTokenBuilder.buildTokenWithAccount(
       AGORA_APP_ID,
       AGORA_APP_CERT,
       channelName,
