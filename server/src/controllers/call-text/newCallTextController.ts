@@ -73,6 +73,8 @@ export const generateToken = expressAsyncHandler(
                 roomId: channelName,
                 callerName: userName || "",
                 type: mediaType,
+                rtmToken: rtmToken,
+                rtcToken: rtcToken,
               }
             );
             notificationSent = true;
