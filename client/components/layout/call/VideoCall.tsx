@@ -37,6 +37,7 @@ export default function VideoCall({
   const [muted, setMuted] = useState(false);
   const [videoOff, setVideoOff] = useState(false);
   const [remoteUsers, setRemoteUsers] = useState<RemoteUser[]>([]);
+  const [time, setTime] = useState(60);
 
   // Load Agora dynamically
   useEffect(() => {
@@ -91,6 +92,20 @@ export default function VideoCall({
       joinChannel().catch(console.error);
     }
   }, [AgoraRTC, mediaType]);
+
+  // Auto-leave when all remote users leave
+  useEffect(() => {
+    if (remoteUsers.length > 0) {
+      setTime(1);
+    }
+    if (joined && remoteUsers.length === 0) {
+      const timer = setTimeout(() => {
+        leaveChannel();
+      }, time * 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [remoteUsers, joined]);
 
   const joinChannel = async () => {
     if (!AgoraRTC) return;
@@ -208,12 +223,17 @@ export default function VideoCall({
           <div
             ref={(el) => {
               if (el && localVideoTrackRef.current && !el.hasChildNodes()) {
-                localVideoTrackRef.current.play(el);
+                localVideoTrackRef.current.play(el, { muted: true });
+                const video = el.querySelector("video");
+                if (video) {
+                  video.setAttribute("playsinline", "");
+                  video.setAttribute("muted", "");
+                }
               }
             }}
             className={`${
               remoteUsers.length > 0
-                ? "absolute bottom-6 right-6 w-48 h-32 border-2 border-white rounded-lg shadow-lg"
+                ? "absolute top-32 right-6 w-48 h-32 rounded-lg shadow-lg"
                 : "w-full h-full rounded-xl overflow-hidden"
             }`}
           />
@@ -230,7 +250,7 @@ export default function VideoCall({
 
       {/* Controls */}
       {joined && (
-        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-4">
+        <div className="absolute lg:bottom-6 md:bottom-32 bottom-40 left-0 right-0 flex justify-center gap-4">
           <button
             onClick={toggleMute}
             className="p-3 bg-gray-800 rounded-full text-white hover:bg-gray-700"
