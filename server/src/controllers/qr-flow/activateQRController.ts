@@ -1,14 +1,14 @@
-import expressAsyncHandler from 'express-async-handler';
-import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
-import { Response } from 'express';
-import { QRModel } from '../../models/qr-flow/qrModel';
-import { ApiResponse } from '../../config/ApiResponse';
-import { QRStatus } from '../../config/constants';
-import { PaymentTransaction } from '../../models/transaction/paymentTransaction';
+import expressAsyncHandler from "express-async-handler";
+import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
+import { Response } from "express";
+import { QRModel } from "../../models/qr-flow/qrModel";
+import { ApiResponse } from "../../config/ApiResponse";
+import { QRStatus } from "../../config/constants";
+import { PaymentTransaction } from "../../models/transaction/paymentTransaction";
 import {
   IQRUpdateSchema,
   qrUpdateSchema,
-} from '../../validators/qr-flow/qrSchema';
+} from "../../validators/qr-flow/qrSchema";
 
 export const checkQRValidity = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
@@ -18,13 +18,16 @@ export const checkQRValidity = expressAsyncHandler(
       return ApiResponse(
         res,
         400,
-        'No QR found with this serial number',
+        "No QR found with this serial number",
         false,
-        null,
+        null
       );
 
-    if (QR.qrStatus === QRStatus.PENDING_PAYMENT || QR.qrStatus === QRStatus.REJECTED)
-      return ApiResponse(res, 200, 'The QR is not yet activated.', true, {
+    if (
+      QR.qrStatus === QRStatus.PENDING_PAYMENT ||
+      QR.qrStatus === QRStatus.REJECTED
+    )
+      return ApiResponse(res, 200, "The QR is not yet activated.", true, {
         qrStatus: QR.qrStatus,
       });
 
@@ -36,18 +39,18 @@ export const checkQRValidity = expressAsyncHandler(
       return ApiResponse(
         res,
         200,
-        'No Valid Transaction found for this one!',
+        "No Valid Transaction found for this one!",
         true,
         {
           qrStatus: QR.qrStatus,
-        },
+        }
       );
 
-    return ApiResponse(res, 200, 'QR Information fetched successfully', true, {
+    return ApiResponse(res, 200, "QR Information fetched successfully", true, {
       qrInfo: QR,
       transaction: transaction,
     });
-  },
+  }
 );
 
 export const updateQRBySerialNumberHandler = expressAsyncHandler(
@@ -57,7 +60,7 @@ export const updateQRBySerialNumberHandler = expressAsyncHandler(
     const validation = qrUpdateSchema.safeParse(qrInfo);
     console.log("Validation Error : ", validation.error);
     if (!validation.success)
-      return ApiResponse(res, 400, 'Error occurred in validation', false, null);
+      return ApiResponse(res, 400, "Error occurred in validation", false, null);
 
     const { serialNumber, ...updateData } = validation.data;
 
@@ -67,22 +70,26 @@ export const updateQRBySerialNumberHandler = expressAsyncHandler(
       return ApiResponse(
         res,
         404,
-        'QR with given serial number not found.',
+        "QR with given serial number not found.",
         false,
-        null,
+        null
       );
     }
 
     // Prevent activation of QRs in PENDING_PAYMENT or REJECTED status
-    if ((existingQR.qrStatus === QRStatus.PENDING_PAYMENT || existingQR.qrStatus === QRStatus.REJECTED) && updateData.qrStatus === QRStatus.ACTIVE) {
+    if (
+      (existingQR.qrStatus === QRStatus.PENDING_PAYMENT ||
+        existingQR.qrStatus === QRStatus.REJECTED) &&
+      updateData.qrStatus === QRStatus.ACTIVE
+    ) {
       return ApiResponse(
         res,
         403,
-        existingQR.qrStatus === QRStatus.PENDING_PAYMENT 
-          ? 'Cannot activate QR while payment is pending approval.'
-          : 'Cannot activate QR that has been rejected. Payment is required.',
+        existingQR.qrStatus === QRStatus.PENDING_PAYMENT
+          ? "Cannot activate QR while payment is pending approval."
+          : "Cannot activate QR that has been rejected. Payment is required.",
         false,
-        null,
+        null
       );
     }
 
@@ -90,15 +97,16 @@ export const updateQRBySerialNumberHandler = expressAsyncHandler(
       { serialNumber },
       {
         $set: {
+          createdFor: req.data?.userId,
           ...updateData,
         },
       },
       {
         new: true,
         runValidators: true,
-      },
+      }
     );
 
-    return ApiResponse(res, 200, 'QR updated successfully.', true, updatedQR);
-  },
+    return ApiResponse(res, 200, "QR updated successfully.", true, updatedQR);
+  }
 );
