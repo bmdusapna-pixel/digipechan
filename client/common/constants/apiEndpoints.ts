@@ -51,6 +51,8 @@ export const API_ENDPOINTS = {
 
   // QR Questions
   upsertQuestions: `${API_DOMAIN}/qr-flow/questions/upsert`,
+  sendQrNotification: (qrId: string) =>
+    `${API_DOMAIN}/qr-flow/notification/${qrId}`,
   scanQuestions: (qrId: string) =>
     `${API_DOMAIN}/qr-flow/scan/${qrId}/questions`,
   getTypeQuestions: `${API_DOMAIN}/qr-flow/get-questions`,

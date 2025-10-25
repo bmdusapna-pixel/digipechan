@@ -2,6 +2,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { API_ENDPOINTS } from "@/common/constants/apiEndpoints";
+import { API_METHODS } from "@/common/constants/apiMethods";
+import { apiRequest } from "@/common/utils/apiClient";
 import {
   Card,
   CardContent,
@@ -46,10 +49,32 @@ export default function QRScanPage() {
     enabled: !!qrId,
   });
 
-  const handleQuestionSelect = (question: QRTagQuestion) => {
-    setSelectedQuestion(question);
-    setShowCommunicationOptions(true);
-    toast.success("Question selected! Choose how to contact the owner.");
+  const handleQuestionSelect = async (
+    question: QRTagQuestion,
+    qrId: string
+  ) => {
+    try {
+      if (!qrId) {
+        toast.error("QR ID is missing.");
+        return;
+      }
+
+      setSelectedQuestion(question);
+      setShowCommunicationOptions(true);
+
+      await apiRequest(
+        API_METHODS.POST,
+        API_ENDPOINTS.sendQrNotification(qrId),
+        {
+          question: question,
+        }
+      );
+
+      toast.success("Question sent to owner successfully!");
+    } catch (error) {
+      console.error("Error sending question notification:", error);
+      toast.error("Something went wrong while sending the question.");
+    }
   };
   const handleCall = (type: "none" | "video" | "audio") => {
     setMediaType(type);
@@ -179,7 +204,7 @@ export default function QRScanPage() {
                     key={question.id}
                     variant="outline"
                     className="w-full justify-start h-auto p-4 text-left"
-                    onClick={() => handleQuestionSelect(question)}
+                    onClick={() => handleQuestionSelect(question, qr._id)}
                   >
                     <div className="flex flex-col items-start">
                       <span className="font-medium">{question.text}</span>
@@ -215,7 +240,7 @@ export default function QRScanPage() {
                 <div className="grid gap-3">
                   {qr.voiceCallsAllowed && (
                     <Button
-                      onClick={() => handleCommunication("call")}
+                      onClick={() => handleCall("audio")}
                       className="flex items-center gap-3 h-12"
                       variant="outline"
                     >
@@ -226,7 +251,10 @@ export default function QRScanPage() {
 
                   {qr.textMessagesAllowed && (
                     <Button
-                      onClick={() => handleCommunication("message")}
+                      onClick={() => {
+                        setShowCommunicationOptions(false);
+                        setSelectedQuestion(null);
+                      }}
                       className="flex items-center gap-3 h-12"
                       variant="outline"
                     >
@@ -237,7 +265,7 @@ export default function QRScanPage() {
 
                   {qr.videoCallsAllowed && (
                     <Button
-                      onClick={() => handleCommunication("video")}
+                      onClick={() => handleCall("video")}
                       className="flex items-center gap-3 h-12"
                       variant="outline"
                     >

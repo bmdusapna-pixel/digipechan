@@ -6,7 +6,10 @@ import {
 import { UserRoles } from "../../enums/enums";
 import { upload } from "../../config/multerConfig";
 import { createNewQRType } from "../../controllers/qr-flow/createNewQRTypeController";
-import { fetchTypesOfQRBasedOnDelivery, updateQRPermissionsByUserHandler } from "../../controllers/qr-flow/qrController";
+import {
+  fetchTypesOfQRBasedOnDelivery,
+  updateQRPermissionsByUserHandler,
+} from "../../controllers/qr-flow/qrController";
 import { paymentRoute } from "./payment/paymentRoute";
 import { User } from "../../models/auth/user";
 import {
@@ -14,17 +17,22 @@ import {
   updateQRBySerialNumberHandler,
 } from "../../controllers/qr-flow/activateQRController";
 import { scanQrHandler } from "../../controllers/qr-flow/qrScanController";
+import { sendQuestionNotificationHandler } from "../../controllers/qr-flow/sendQuestionNotification";
 import { mailQRTemplate } from "../../controllers/qr-flow/mailQRTemplateController";
 import { uploadLocalPDF } from "../../helpers/generateQRPDF";
-import { getQRTypeQuestions, upsertQRTypeQuestions, getScanQuestions } from "../../controllers/qr-flow/qrQuestionsController";
+import {
+  getQRTypeQuestions,
+  upsertQRTypeQuestions,
+  getScanQuestions,
+} from "../../controllers/qr-flow/qrQuestionsController";
 import { fetchGeneratedQRsByUser } from "../../controllers/qr-flow/qrController";
 import { startCallHandler } from "../../controllers/qr-flow/qrScanController";
 import { getQrDetailsHandler } from "../../controllers/qr-flow/qrScanController";
-import { 
-  addQRReview, 
-  getQRReviews, 
-  deleteQRReview, 
-  getQRReviewStats 
+import {
+  addQRReview,
+  getQRReviews,
+  deleteQRReview,
+  getQRReviewStats,
 } from "../../controllers/qr-flow/qrReviewController";
 
 export const qrFlowRoute = express.Router();
@@ -47,7 +55,7 @@ qrFlowRoute.post(
 qrFlowRoute.post(
   "/check-validity",
   authenticate,
-  authorize([UserRoles.BASIC_USER,UserRoles.ADMIN,UserRoles.SALESPERSON]),
+  authorize([UserRoles.BASIC_USER, UserRoles.ADMIN, UserRoles.SALESPERSON]),
   checkQRValidity
 );
 
@@ -63,6 +71,12 @@ qrFlowRoute.get(
   authenticate,
   authorize([UserRoles.BASIC_USER]),
   scanQrHandler
+);
+qrFlowRoute.post(
+  "/notification/:qrId",
+  authenticate,
+  authorize([UserRoles.BASIC_USER]),
+  sendQuestionNotificationHandler
 );
 qrFlowRoute.post(
   "/start-call/:qrId",
@@ -86,10 +100,12 @@ qrFlowRoute.post(
   updateQRPermissionsByUserHandler
 );
 
-qrFlowRoute.get('/qrdetails/:qrId',
+qrFlowRoute.get(
+  "/qrdetails/:qrId",
   authenticate,
   authorize([UserRoles.BASIC_USER]),
-  getQrDetailsHandler);
+  getQrDetailsHandler
+);
 
 qrFlowRoute.post("/test", (req, res) => {
   console.log("Test route hit");
