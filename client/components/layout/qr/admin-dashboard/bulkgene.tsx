@@ -1550,7 +1550,6 @@ export default function BulkGenerationForm() {
         open={isBundleDetails}
         onOpenChange={setIsBundleDetails}
       />
-      ;
     </div>
   );
 }
