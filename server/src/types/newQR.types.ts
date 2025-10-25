@@ -1,6 +1,6 @@
-import { DeliveryType } from 'cloudinary';
-import mongoose from 'mongoose';
-import { OrderStatus, QRStatus } from '../config/constants';
+import { DeliveryType } from "cloudinary";
+import mongoose from "mongoose";
+import { OrderStatus, QRStatus } from "../config/constants";
 
 export interface IAddress {
   houseNumber?: string;
@@ -34,7 +34,7 @@ export interface IQR extends Document {
   createdFor?: mongoose.Types.ObjectId;
   soldBySalesperson?: mongoose.Types.ObjectId;
   deliveryType?: DeliveryType;
-  orderStatus? : OrderStatus;
+  orderStatus?: OrderStatus;
   qrStatus: QRStatus;
   shippingDetails?: IAddress;
   visibleInfoFields?: string[];
@@ -44,11 +44,12 @@ export interface IQR extends Document {
   textMessagesAllowed?: boolean;
   voiceCallsAllowed?: boolean;
   videoCallsAllowed?: boolean;
-  qrWithTemplate? : string;
+  qrWithTemplate?: string;
   bundleId?: string;
   price?: number;
   isSold?: boolean;
   reviews?: IReview[];
+  tagType?: string;
   questions?: Array<{
     id: string;
     text: string;

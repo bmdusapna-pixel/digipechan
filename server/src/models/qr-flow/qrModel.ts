@@ -156,6 +156,10 @@ const qrSchema = new Schema<IQR>(
       type: [reviewSchema],
       default: [],
     },
+    tagType: {
+      type: String,
+      required: false,
+    },
     questions: {
       type: [
         {

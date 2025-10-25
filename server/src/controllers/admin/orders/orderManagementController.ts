@@ -260,6 +260,7 @@ export const bulkGenerateQRs = expressAsyncHandler(
         qrStatus: QRStatus.INACTIVE,
         bundleId: bundleId, // Add bundle ID to QR
         price: unitPrice,
+        tagType: tagType,
         questions: questions || [], // Add questions to each QR
       });
 
