@@ -50,13 +50,16 @@ export const signUp = expressAsyncHandler(
         );
 
       const existingUser = await User.findOne({
-        email: validation.data?.email,
+        $or: [
+          { email: validation.data?.email },
+          { phoneNumber: validation.data?.phoneNumber },
+        ],
       });
       if (existingUser)
         return ApiResponse(
           res,
           400,
-          "User already exists",
+          "User already exists with this email or phone number",
           false,
           null,
           "Could not create a user"

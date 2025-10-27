@@ -11,6 +11,13 @@ export const signUpSchema = z.object({
     .regex(/^[A-Za-z]+$/, { message: "Last name must contain only alphabets" })
     .nonempty({ message: "Last Name cannot be empty!" }),
   email: z.string().email({ message: "Invalid email format" }),
+  phoneNumber: z
+    .string()
+    .regex(/^\+?[0-9]{10,15}$/, {
+      message:
+        "Phone number must be between 10 to 15 digits and may start with '+'",
+    })
+    .nonempty({ message: "Phone number cannot be empty!" }),
   password: z
     .string()
     .min(6, { message: "Password should have 6 or more characters" })

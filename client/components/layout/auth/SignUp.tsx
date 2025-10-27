@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Lock, Mail, User, Car } from "lucide-react";
+import { Lock, Mail, User, Car, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +35,7 @@ export default function SignUp() {
     firstName: "",
     lastName: "",
     email: "",
+    phoneNumber: "",
     password: "",
     confirmPassword: "",
   });
@@ -146,6 +147,24 @@ export default function SignUp() {
                     value={formData.email}
                     onChange={handleChange}
                     className="bg-background border-[var(--input)] pl-9 focus-visible:ring-[var(--ring)]"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumber" className="text-card-foreground">
+                  Phone Number
+                </Label>
+                <div className="relative">
+                  <Phone className="text-primary/70 absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2 transform" />
+                  <Input
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    type="tel"
+                    placeholder="9876543210"
+                    required
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
+                    className="bg-background border-[var(--input)] pl-9"
                   />
                 </div>
               </div>
