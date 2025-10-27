@@ -80,6 +80,46 @@ export default function QRScanPage() {
     setMediaType(type);
   };
 
+  interface BonvoiceCallResponse {
+    userPhone: string;
+    qrPhone: string;
+    eventID: string;
+    bonvoiceResponse: {
+      responseCode: number;
+      responseDescription: string;
+      responseType: string;
+      eventID: string;
+    };
+  }
+
+  const triggerBonvoiceCall = async (qrId: string): Promise<void> => {
+    try {
+      const response = await apiRequest<BonvoiceCallResponse>(
+        API_METHODS.POST,
+        API_ENDPOINTS.bonvoiceCall,
+        { qrId }
+      );
+
+      if (!response) {
+        toast.error("No response from server.");
+        return;
+      }
+
+      if (response.bonvoiceResponse?.responseCode === 200) {
+        toast.success("Call bridge initiated successfully!");
+        console.log("Bonvoice Call Details:", response);
+      } else {
+        toast.error(
+          `Failed: ${response.bonvoiceResponse?.responseDescription || "Unknown error"}`
+        );
+        console.error("Bonvoice Error:", response);
+      }
+    } catch (error: any) {
+      console.error("Error calling Bonvoice API:", error);
+      toast.error("An error occurred while initiating Bonvoice call.");
+    }
+  };
+
   const handleCommunication = (type: "call" | "message" | "video") => {
     if (!qrData?.qr?.createdFor) {
       toast.error("Owner information not available");
@@ -240,7 +280,7 @@ export default function QRScanPage() {
                 <div className="grid gap-3">
                   {qr.voiceCallsAllowed && (
                     <Button
-                      onClick={() => handleCall("audio")}
+                      onClick={() => triggerBonvoiceCall(qr._id)}
                       className="flex items-center gap-3 h-12"
                       variant="outline"
                     >
@@ -329,7 +369,7 @@ export default function QRScanPage() {
               <div className="grid gap-3">
                 {qr.voiceCallsAllowed && (
                   <Button
-                    onClick={() => handleCall("audio")}
+                    onClick={() => triggerBonvoiceCall(qr._id)}
                     className="flex items-center gap-3 h-12"
                     variant="outline"
                   >

@@ -60,6 +60,7 @@ import { subDays, subYears, format } from "date-fns";
 import OrderManagement from "./OrderManagement";
 import BulkGenerationForm from "./bulkgene";
 import { useRouter } from "next/navigation";
+import Bonvoice from "./Bonvoice";
 
 export default function StatisticsPage() {
   const [activeFilter, setActiveFilter] = useState<"weekly" | "monthly">(
@@ -190,8 +191,7 @@ export default function StatisticsPage() {
             <TabsTrigger
               value="qr-types"
               className="data-[state=active]:bg-primary rounded-md px-4 py-2 text-sm font-medium transition-all data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:hover:bg-gray-200"
-              onClick={()=>router.push("/qr/type_create")}
-
+              onClick={() => router.push("/qr/type_create")}
             >
               QR Types
             </TabsTrigger>
@@ -200,6 +200,12 @@ export default function StatisticsPage() {
               className="data-[state=active]:bg-primary rounded-md px-4 py-2 text-sm font-medium transition-all data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:hover:bg-gray-200"
             >
               Bulk QR
+            </TabsTrigger>
+            <TabsTrigger
+              value="bonvoice"
+              className="data-[state=active]:bg-primary rounded-md px-4 py-2 text-sm font-medium transition-all data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:hover:bg-gray-200"
+            >
+              Bonvoice API
             </TabsTrigger>
             {/* <TabsTrigger
               value="new"
@@ -251,7 +257,7 @@ export default function StatisticsPage() {
                                   /(^\w|_\w)/g,
                                   (match) =>
                                     match.replace("_", " ").toUpperCase()
-                                ) || 'Unknown'}
+                                ) || "Unknown"}
                               </div>
                               <div className="text-sm text-gray-500">
                                 Delivery Type
@@ -751,6 +757,9 @@ export default function StatisticsPage() {
 
           <TabsContent value="orders">
             <OrderManagement />
+          </TabsContent>
+          <TabsContent value="bonvoice">
+            <Bonvoice />
           </TabsContent>
         </Tabs>
       </div>

@@ -84,4 +84,9 @@ export const API_ENDPOINTS = {
   getAllPaymentTickets: `${API_DOMAIN}/admin/payment-tickets`,
   updatePaymentTicketStatus: (ticketId: string) =>
     `${API_DOMAIN}/admin/payment-tickets/${ticketId}/status`,
+
+  getBonvoice: `${API_DOMAIN}/bonvoice/get-bonvoice`,
+  updateBonvoice: `${API_DOMAIN}/bonvoice/update-bonvoice`,
+  refreshBonvoiceToken: `${API_DOMAIN}/bonvoice/token`,
+  bonvoiceCall: `${API_DOMAIN}/bonvoice/call`,
 };

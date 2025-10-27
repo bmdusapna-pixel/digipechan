@@ -5,6 +5,7 @@ import { qrFlowRoute } from "./routes/qr-flow/qrFlowRoute";
 import { adminRoute } from "./routes/admin/adminRoute";
 import { salesmanRoute } from "./routes/salesman/salesmanRoute";
 import { newCallRoutes } from "./routes/newCallRoutes";
+import { bonvoiceRoute } from "./routes/bonvoice/bonvoiceRoute";
 import {
   forwardCall,
   sendVoiceReason,
@@ -24,3 +25,4 @@ apiRouter.post("/qr/send-voice-reason", sendVoiceReason);
 apiRouter.post("/rtoapi", sendRtoRequest);
 apiRouter.post("/call-connect", initiateCallConnect);
 apiRouter.use("/token", newCallRoutes);
+apiRouter.use("/bonvoice", bonvoiceRoute);
