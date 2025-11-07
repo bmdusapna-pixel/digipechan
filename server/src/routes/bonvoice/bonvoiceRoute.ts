@@ -11,8 +11,13 @@ import {
 import { updateBonvoiceToken } from "../../controllers/bonvoice/bonvoiceTokenController";
 import { UserRoles } from "../../enums/enums";
 import { startAutoCallBridge } from "../../controllers/bonvoice/callController";
+import { callWebhook } from "../../controllers/bonvoice/callWebhookController";
+import { setCallLog } from "../../controllers/bonvoice/setCallLogController";
 
 export const bonvoiceRoute = express.Router();
+
+bonvoiceRoute.get("/call-webhook", callWebhook);
+bonvoiceRoute.post("/call-log", setCallLog);
 
 bonvoiceRoute.post(
   "/call",

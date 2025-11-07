@@ -19,6 +19,10 @@ export interface IReview {
   rating?: number;
   timestamp?: Date;
 }
+interface ICallLog {
+  time: Date;
+  connected: boolean;
+}
 
 export interface IQR extends Document {
   qrTypeId: mongoose.Types.ObjectId;
@@ -49,6 +53,7 @@ export interface IQR extends Document {
   price?: number;
   isSold?: boolean;
   reviews?: IReview[];
+  callLogs?: ICallLog[];
   tagType?: string;
   questions?: Array<{
     id: string;

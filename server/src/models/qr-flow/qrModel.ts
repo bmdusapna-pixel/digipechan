@@ -156,6 +156,15 @@ const qrSchema = new Schema<IQR>(
       type: [reviewSchema],
       default: [],
     },
+    callLogs: {
+      type: [
+        {
+          time: { type: Date, default: Date.now },
+          connected: { type: Boolean, default: false },
+        },
+      ],
+      default: [],
+    },
     tagType: {
       type: String,
       required: false,
