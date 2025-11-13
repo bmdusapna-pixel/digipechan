@@ -89,4 +89,5 @@ export const API_ENDPOINTS = {
   updateBonvoice: `${API_DOMAIN}/bonvoice/update-bonvoice`,
   refreshBonvoiceToken: `${API_DOMAIN}/bonvoice/token`,
   bonvoiceCall: `${API_DOMAIN}/bonvoice/call`,
+  dialerCall: `${API_DOMAIN}/bonvoice/call-log`,
 };

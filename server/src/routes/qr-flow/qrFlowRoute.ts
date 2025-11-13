@@ -68,14 +68,14 @@ qrFlowRoute.post(
 
 qrFlowRoute.get(
   "/scan/:qrId",
-  authenticate,
-  authorize([UserRoles.BASIC_USER]),
+  // authenticate,
+  // authorize([UserRoles.BASIC_USER]),
   scanQrHandler
 );
 qrFlowRoute.post(
   "/notification/:qrId",
-  authenticate,
-  authorize([UserRoles.BASIC_USER]),
+  // authenticate,
+  // authorize([UserRoles.BASIC_USER]),
   sendQuestionNotificationHandler
 );
 qrFlowRoute.post(
@@ -132,8 +132,8 @@ qrFlowRoute.post(
 // Fetch scan questions by qrId (shown during scan flow)
 qrFlowRoute.get(
   "/scan/:qrId/questions",
-  authenticate,
-  authorize([UserRoles.BASIC_USER]),
+  // authenticate,
+  // authorize([UserRoles.BASIC_USER]),
   getScanQuestions
 );
 qrFlowRoute.get(

@@ -81,38 +81,32 @@ export default function QRScanPage() {
   };
 
   interface BonvoiceCallResponse {
-    userPhone: string;
-    qrPhone: string;
-    eventID: string;
-    bonvoiceResponse: {
-      responseCode: number;
-      responseDescription: string;
-      responseType: string;
-      eventID: string;
-    };
+    did: string;
   }
 
   const triggerBonvoiceCall = async (qrId: string): Promise<void> => {
     try {
       const response = await apiRequest<BonvoiceCallResponse>(
         API_METHODS.POST,
-        API_ENDPOINTS.bonvoiceCall,
+        API_ENDPOINTS.dialerCall,
         { qrId }
       );
 
-      if (!response) {
-        toast.error("No response from server.");
-        return;
-      }
+      if (response?.did) {
+        toast.success(`Connecting to ${response.did}...`);
+        console.log("DID:", response.did);
 
-      if (response.bonvoiceResponse?.responseCode === 200) {
-        toast.success("Call bridge initiated successfully!");
-        console.log("Bonvoice Call Details:", response);
+        const isMobile =
+          /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+          (navigator.maxTouchPoints && navigator.maxTouchPoints > 1);
+
+        if (isMobile) {
+          window.location.href = `tel:${response.did}`;
+        } else {
+          toast.info(`Please call this number manually: ${response.did}`);
+        }
       } else {
-        toast.error(
-          `Failed: ${response.bonvoiceResponse?.responseDescription || "Unknown error"}`
-        );
-        console.error("Bonvoice Error:", response);
+        toast.error("Failed to fetch DID.");
       }
     } catch (error: any) {
       console.error("Error calling Bonvoice API:", error);

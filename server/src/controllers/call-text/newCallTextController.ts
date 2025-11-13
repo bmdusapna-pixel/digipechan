@@ -14,21 +14,10 @@ import { User } from "../../models/auth/user";
 import { push } from "../../config/push";
 
 export const generateToken = expressAsyncHandler(
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     const channelName = String(req.query.channel) || "demo-channel";
-    const uid = req.data?.userId;
+    const uid = Math.floor(Math.random() * 1000000).toString();
     const { qrId, userName, mediaType } = req.body;
-
-    if (!uid) {
-      return ApiResponse(
-        res,
-        400,
-        "User ID missing in token payload",
-        false,
-        null,
-        "Authentication Error"
-      );
-    }
 
     const expirationInSeconds = 3600;
     const currentTimestamp = Math.floor(Date.now() / 1000);

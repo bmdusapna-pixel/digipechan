@@ -18,7 +18,7 @@ newCallRoutes.get(
 );
 newCallRoutes.post(
   "/",
-  authenticate,
-  authorize([UserRoles.BASIC_USER]),
+  // authenticate,
+  // authorize([UserRoles.BASIC_USER]),
   generateToken
 );
