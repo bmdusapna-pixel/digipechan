@@ -16,7 +16,7 @@ import { setCallLog } from "../../controllers/bonvoice/setCallLogController";
 
 export const bonvoiceRoute = express.Router();
 
-bonvoiceRoute.get("/call-webhook", callWebhook);
+bonvoiceRoute.post("/call-webhook", callWebhook);
 bonvoiceRoute.post("/call-log", setCallLog);
 
 bonvoiceRoute.post(

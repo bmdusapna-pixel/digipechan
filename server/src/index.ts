@@ -24,6 +24,7 @@ const allowedOrigins = [
   FRONTEND_BASE_URL_PROD_VERCEL,
   // Add your frontend domain here
   "https://client-eight-beige.vercel.app",
+  "https://digi-pehchan-client.vercel.app",
   RTOAPI,
   "*",
 ];
@@ -44,7 +45,7 @@ app.use(
     credentials: true, // Enable credentials
   })
 );
-
+app.options(/.*/, cors());
 app.use(express.json());
 app.use(cookieParser());
 connectToDatabase(parseInt(MAX_RETRIES));
@@ -53,6 +54,10 @@ export const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID!,
   process.env.TWILIO_AUTH_TOKEN!
 );
+
+app.get("/", (req, res) => {
+  res.status(200).json("Server is running");
+});
 
 app.post("/vehicle", async (req, res) => {
   const response = await fetch("https://prod.apiclub.in/api/v1/rc_lite", {

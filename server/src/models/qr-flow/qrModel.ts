@@ -161,6 +161,7 @@ const qrSchema = new Schema<IQR>(
         {
           time: { type: Date, default: Date.now },
           connected: { type: Boolean, default: false },
+          from: { type: String, default: null },
         },
       ],
       default: [],

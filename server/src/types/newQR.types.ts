@@ -22,6 +22,7 @@ export interface IReview {
 interface ICallLog {
   time: Date;
   connected: boolean;
+  from?: string;
 }
 
 export interface IQR extends Document {
