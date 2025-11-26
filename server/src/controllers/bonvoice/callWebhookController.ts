@@ -147,7 +147,7 @@ export const callWebhook = async (
     // PRIORITY 4: LAST CONNECTED FALLBACK
     // ========================================
     const lastConnectedQR = await QRModel.findOne({
-      callLogs: { $elemMatch: { connected: true } },
+      callLogs: { $elemMatch: { connected: true, from: { $exists: true } } },
       voiceCallsAllowed: true,
     }).sort({ updatedAt: -1 });
 
