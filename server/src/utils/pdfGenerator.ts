@@ -175,3 +175,138 @@ export const generateBundlePDF = async (bundle: any) => {
   const pdfBytes = await pdfDoc.save();
   return Buffer.from(pdfBytes);
 };
+
+export const generateQRPDF = async (qr: any, qrType: any) => {
+  const pdfDoc = await PDFDocument.create();
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  const margin = 50;
+
+  // Try loading template image
+  let templateImage: any;
+  try {
+    const templatePath = path.join(__dirname, "template.png");
+    const buffer = fs.readFileSync(templatePath);
+    templateImage = await pdfDoc.embedPng(buffer);
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      console.warn("Template image not found:", e.message);
+    } else {
+      console.warn("Template image not found:", String(e));
+    }
+  }
+
+  // Try loading QR type icon
+  let qrTypeIcon: any;
+  try {
+    if (qrType?.qrName === "Test") {
+      const iconPath = path.join(__dirname, "policeTag.png");
+      const buffer = fs.readFileSync(iconPath);
+      qrTypeIcon = await pdfDoc.embedPng(buffer);
+    } else if (qrType?.qrIcon) {
+      const resp = await fetch(qrType.qrIcon);
+      if (resp.ok) {
+        const buffer = await resp.arrayBuffer();
+        qrTypeIcon = await pdfDoc.embedPng(buffer);
+      }
+    }
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      console.warn("QR type icon not found:", e.message);
+    } else {
+      console.warn("QR type icon not found:", String(e));
+    }
+  }
+
+  const page = pdfDoc.addPage();
+  const { width, height } = page.getSize();
+
+  // Header
+  page.drawText(`QR: ${qr.serialNumber}`, {
+    x: margin,
+    y: height - margin,
+    size: 18,
+    font: boldFont,
+    color: rgb(0, 0, 0),
+  });
+
+  page.drawText(`QR Type: ${qrType?.qrName}`, {
+    x: margin,
+    y: height - margin - 25,
+    size: 12,
+    font,
+  });
+
+  page.drawText(`Status: ${qr.qrStatus}`, {
+    x: margin,
+    y: height - margin - 40,
+    size: 12,
+    font,
+  });
+
+  page.drawText(`Created by: ${qr.createdBy?.firstName || ""} ${qr.createdBy?.lastName || ""}`, {
+    x: margin,
+    y: height - margin - 55,
+    size: 12,
+    font,
+  });
+
+  // Layout settings
+  const headerHeight = 80;
+  const availableHeight = height - 2 * margin - headerHeight;
+  const availableWidth = width - 2 * margin;
+
+  const templateSize = 250;
+  const qrSize = 80;
+  const qrTypeIconSize = 50;
+
+  const startX = margin + (availableWidth - templateSize) / 2;
+  const startY = height - margin - headerHeight + 60;
+
+  // Template background
+  if (templateImage) {
+    page.drawImage(templateImage, {
+      x: startX,
+      y: startY - templateSize,
+      width: templateSize,
+      height: templateSize,
+    });
+  }
+
+  // QR type icon
+  if (qrTypeIcon) {
+    page.drawImage(qrTypeIcon, {
+      x: startX + (templateSize - qrTypeIconSize) / 2,
+      y: startY - templateSize + (templateSize - qrSize) / 2 + qrSize - 20,
+      width: qrTypeIconSize,
+      height: qrTypeIconSize,
+    });
+  }
+
+  // QR image
+  try {
+    const resp = await fetch(qr.qrUrl);
+    if (resp.ok) {
+      const buffer = await resp.arrayBuffer();
+      const qrImage = await pdfDoc.embedPng(buffer);
+      page.drawImage(qrImage, {
+        x: startX + (templateSize - qrSize) / 2,
+        y: startY - templateSize + (templateSize - qrSize) / 2 - 40,
+        width: qrSize,
+        height: qrSize,
+      });
+    }
+  } catch (e) {
+    page.drawText(`QR ${qr.serialNumber}`, {
+      x: startX + templateSize / 2 - 30,
+      y: startY - templateSize / 2,
+      size: 16,
+      font: boldFont,
+      color: rgb(0.7, 0.7, 0.7),
+    });
+  }
+
+  const pdfBytes = await pdfDoc.save();
+  return Buffer.from(pdfBytes);
+};

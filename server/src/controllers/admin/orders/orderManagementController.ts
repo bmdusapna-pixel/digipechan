@@ -12,7 +12,7 @@ import { Response } from "express";
 import { PaymentTransaction } from "../../../models/transaction/paymentTransaction";
 import { Bundle } from "../../../models/qr-flow/bundleModel";
 import { Salesman } from "../../../models/auth/salesman";
-import { generateBundlePDF } from "../../../utils/pdfGenerator";
+import { generateBundlePDF, generateQRPDF } from "../../../utils/pdfGenerator";
 import crypto from "crypto";
 import {
   FRONTEND_BASE_URL_DEV,
@@ -523,5 +523,41 @@ export const getBundleQRs = expressAsyncHandler(
       console.error("Error fetching bundle QRs:", error);
       return ApiResponse(res, 500, "Failed to fetch bundle QRs", false, null);
     }
+  }
+);
+
+export const downloadQR = expressAsyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { qrId } = req.params;
+
+    if (!qrId) {
+      return ApiResponse(res, 400, "QR ID is required", false, null);
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(qrId)) {
+      return ApiResponse(res, 400, "Invalid QR ID", false, null);
+    }
+
+    const qr = await QRModel.findById(qrId)
+      .populate("qrTypeId")
+      .populate("createdBy", "firstName lastName")
+      .lean();
+
+    if (!qr) {
+      return ApiResponse(res, 404, "QR not found", false, null);
+    }
+
+    if (!qr.qrTypeId) {
+      return ApiResponse(res, 404, "QR type not found", false, null);
+    }
+
+    const pdfBuffer = await generateQRPDF(qr, qr.qrTypeId);
+
+    const fileName = `qr_${qr.serialNumber}.pdf`;
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.setHeader("Content-Length", pdfBuffer.length);
+
+    res.send(pdfBuffer);
   }
 );

@@ -5,6 +5,7 @@ import {
 } from "../../middlewares/jwtAuthenticationMiddleware";
 import { UserRoles } from "../../enums/enums";
 import { upload } from "../../config/multerConfig";
+import { downloadQR } from "../../controllers/admin/orders/orderManagementController";
 import { createNewQRType } from "../../controllers/qr-flow/createNewQRTypeController";
 import {
   fetchTypesOfQRBasedOnDelivery,
@@ -173,3 +174,11 @@ qrFlowRoute.get(
 );
 
 qrFlowRoute.use("/payment", paymentRoute);
+
+// Download single QR as PDF
+qrFlowRoute.get(
+  "/qrs/:qrId/download",
+  authenticate,
+  authorize([UserRoles.BASIC_USER, UserRoles.SALESPERSON, UserRoles.ADMIN]),
+  downloadQR
+);

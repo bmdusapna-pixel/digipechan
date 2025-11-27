@@ -33,6 +33,7 @@ import { getBundleQrs, SalesmanQR } from "@/types/salesman";
 import { initiatePayment } from "@/lib/api/qr/initiatePayment";
 import { DeliveryType } from "@/common/constants/enum";
 import { toast } from "sonner";
+import { API_ENDPOINTS } from "@/common/constants/apiEndpoints";
 
 export default function BundleDetails({ bundleId }: { bundleId: string }) {
   const router = useRouter();
@@ -42,6 +43,7 @@ export default function BundleDetails({ bundleId }: { bundleId: string }) {
   const [selectedQr, setSelectedQr] = useState<SalesmanQR | null>(null);
   const [showCreateTicket, setShowCreateTicket] = useState(false);
   const [redirectingQrId, setRedirectingQrId] = useState<string | null>(null);
+  const [downloadingQrId, setDownloadingQrId] = useState<string | null>(null);
 
   const {
     data: bundleData,
@@ -117,6 +119,56 @@ export default function BundleDetails({ bundleId }: { bundleId: string }) {
     // Only INACTIVE QRs without a customer and not already sold can be sold
     // Exclude PENDING_PAYMENT and REJECTED QRs
     return qr.qrStatus === "INACTIVE" && !qr.createdFor && !qr.isSold;
+  };
+
+  const handleDownloadQR = async (qrId: string, serialNumber: string) => {
+    try {
+      setDownloadingQrId(qrId);
+
+      // Get the auth token
+      const state = useAuthStore.getState();
+      const accessToken = state.user?.accessToken;
+
+      if (!accessToken) {
+        toast.error("Authentication required");
+        return;
+      }
+
+      // Make the download request
+      const response = await fetch(API_ENDPOINTS.downloadQR(qrId), {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Get the blob from the response
+      const blob = await response.blob();
+
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = `QR-${serialNumber}.pdf`;
+
+      // Trigger the download
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success("QR code PDF downloaded successfully!");
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast.error("Failed to download QR code");
+    } finally {
+      setDownloadingQrId(null);
+    }
   };
 
   return (
@@ -195,11 +247,29 @@ export default function BundleDetails({ bundleId }: { bundleId: string }) {
                     className="bg-gray-50 rounded-lg p-3 border hover:shadow-md transition-shadow"
                   >
                     <div className="text-center space-y-2">
-                      <img
-                        src={qr.qrUrl}
-                        alt="QR Code"
-                        className="w-full h-auto rounded border-2 border-gray-200"
-                      />
+                      <div
+                        onClick={
+                          qr.qrStatus === "ACTIVE"
+                            ? () => handleDownloadQR(qr._id, qr.serialNumber)
+                            : undefined
+                        }
+                        className={`cursor-pointer ${
+                          qr.qrStatus === "ACTIVE"
+                            ? "hover:opacity-80 transition-opacity"
+                            : ""
+                        }`}
+                        title={
+                          qr.qrStatus === "ACTIVE"
+                            ? "Click to download QR code"
+                            : ""
+                        }
+                      >
+                        <img
+                          src={qr.qrUrl}
+                          alt="QR Code"
+                          className="w-full h-auto rounded border-2 border-gray-200"
+                        />
+                      </div>
                       <div className="text-xs space-y-1">
                         <p className="font-medium text-gray-900 truncate">
                           {qr.serialNumber}

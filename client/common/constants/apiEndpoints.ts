@@ -62,6 +62,7 @@ export const API_ENDPOINTS = {
   assignBundle: `${API_DOMAIN}/admin/assign-bundle`,
   downloadBundleQRs: (bundleId: string) =>
     `${API_DOMAIN}/admin/bundles/${bundleId}/download`,
+  downloadQR: (qrId: string) => `${API_DOMAIN}/qr-flow/qrs/${qrId}/download`,
   shareBundleORs: (bundleId: string) =>
     `${API_DOMAIN}/admin/bundles/${bundleId}/share`,
   salesmen: `${API_DOMAIN}/salesman/list`,
