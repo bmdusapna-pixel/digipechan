@@ -16,6 +16,7 @@ import { User } from "../../models/auth/user";
 import {
   checkQRValidity,
   updateQRBySerialNumberHandler,
+  updateQRPermissions,
 } from "../../controllers/qr-flow/activateQRController";
 import { scanQrHandler } from "../../controllers/qr-flow/qrScanController";
 import { sendQuestionNotificationHandler } from "../../controllers/qr-flow/sendQuestionNotification";
@@ -65,6 +66,13 @@ qrFlowRoute.post(
   authenticate,
   authorize([UserRoles.BASIC_USER]),
   updateQRBySerialNumberHandler
+);
+
+qrFlowRoute.post(
+  "/qr/:qrId/permissions",
+  authenticate,
+  authorize([UserRoles.BASIC_USER]),
+  updateQRPermissions
 );
 
 qrFlowRoute.get(

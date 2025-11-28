@@ -1,4 +1,5 @@
 import expressAsyncHandler from "express-async-handler";
+import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
 import { Response } from "express";
 import { QRModel } from "../../models/qr-flow/qrModel";
@@ -50,6 +51,68 @@ export const checkQRValidity = expressAsyncHandler(
       qrInfo: QR,
       transaction: transaction,
     });
+  }
+);
+
+export const updateQRPermissions = expressAsyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const qrId =
+        (req.params?.qrId as string) || (req.query.qrId as string) ||
+        (req.body?.qrId as string);
+
+      if (!qrId || !mongoose.Types.ObjectId.isValid(qrId)) {
+        return ApiResponse(res, 400, "Invalid or missing qrId", false, null);
+      }
+
+      const qr = await QRModel.findById(qrId);
+      if (!qr) {
+        return ApiResponse(res, 404, "QR not found", false, null);
+      }
+
+      const allowed = [
+        "textMessagesAllowed",
+        "voiceCallsAllowed",
+        "videoCallsAllowed",
+      ];
+
+      const body = req.body || {};
+      const fieldsToUpdate = allowed.filter((f) =>
+        Object.prototype.hasOwnProperty.call(body, f)
+      );
+
+      const update: any = {};
+
+      if (fieldsToUpdate.length === 0) {
+        // No specific fields provided: apply global toggle
+        const anyTrue =
+          Boolean(qr.textMessagesAllowed) ||
+          Boolean(qr.voiceCallsAllowed) ||
+          Boolean(qr.videoCallsAllowed);
+
+        const newVal = !anyTrue; // if any true -> newVal false, else true
+
+        update.textMessagesAllowed = newVal;
+        update.voiceCallsAllowed = newVal;
+        update.videoCallsAllowed = newVal;
+      } else {
+        // Only update provided fields. For those fields, if any is currently true -> set all provided to false, else set all provided to true
+        const anyProvidedTrue = fieldsToUpdate.some((f) => Boolean((qr as any)[f]));
+        const newVal = !anyProvidedTrue;
+        for (const f of fieldsToUpdate) update[f] = newVal;
+      }
+
+      const updated = await QRModel.findByIdAndUpdate(
+        qrId,
+        { $set: update },
+        { new: true }
+      );
+
+      return ApiResponse(res, 200, "QR permissions updated", true, updated);
+    } catch (err: any) {
+      console.error("Error in updateQRPermissions:", err);
+      return ApiResponse(res, 500, "Failed to update QR permissions", false, null, err?.message);
+    }
   }
 );
 
@@ -110,3 +173,5 @@ export const updateQRBySerialNumberHandler = expressAsyncHandler(
     return ApiResponse(res, 200, "QR updated successfully.", true, updatedQR);
   }
 );
+
+
