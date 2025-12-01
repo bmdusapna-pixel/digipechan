@@ -72,6 +72,14 @@ const userSchema = new Schema<IUserDocument>(
       type : Number,
       default : 0
     },
+    referredBy: {
+      type: Schema.Types.ObjectId,
+      ref: COLLECTION_NAMES.USER,
+    },
+    referralPointsAwarded: {
+      type: Boolean,
+      default: false,
+    },
     deviceTokens: {
       type: [String],
       default: []

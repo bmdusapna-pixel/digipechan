@@ -74,15 +74,12 @@ export const signUp = expressAsyncHandler(
 
       if (user) {
         if (validation.data?._tk) {
-          const _tk = hashids.decodeHex(validation.data?._tk);
-          const referralUser = await User.findById(_tk);
-          const totalDigitalPoints = referralUser?.digitalWalletCoins;
-          const updatedUser = await User.updateOne(
-            { _id: _tk },
-            {
-              digitalWalletCoins: totalDigitalPoints || 0 + 5,
-            }
-          );
+          const decodedReferralId = hashids.decodeHex(validation.data?._tk);
+          const referralUser = await User.findById(decodedReferralId);
+          if (referralUser) {
+            user.referredBy = referralUser._id.toString();
+            await user.save();
+          }
         }
       }
 
@@ -290,6 +287,21 @@ export const verifyEmail = expressAsyncHandler(
       await User.findByIdAndUpdate(user._id, {
         $set: { isVerified: true },
       });
+
+      if (user.referredBy && !user.referralPointsAwarded) {
+        try {
+          await User.findByIdAndUpdate(user.referredBy, {
+            $inc: { digitalWalletCoins: 5 },
+          });
+
+          await User.findByIdAndUpdate(user._id, {
+            $inc: { digitalWalletCoins: 3 },
+            $set: { referralPointsAwarded: true },
+          });
+        } catch (awardErr) {
+          console.error("Referral award error:", awardErr);
+        }
+      }
 
       return ApiResponse(res, 200, "Email verified successfully", true, null);
     } catch (err) {

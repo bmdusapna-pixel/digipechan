@@ -13,12 +13,13 @@ export interface IUser {
   deviceTokens?: string[];
   about?: string;
   roles: UserRoles[];
-  devicetokens?: string[];
   isVerified: boolean;
   verificationToken?: string;
   verificationTokenExpiry?: Date;
   resetPasswordToken?: string;
   resetPasswordTokenExpiry?: Date;
   digitalWalletCoins?: Number;
+  referredBy?: string;
+  referralPointsAwarded?: boolean;
   totalNumberOfQRsGenerated?: Number;
 }

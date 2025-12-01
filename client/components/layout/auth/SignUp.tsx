@@ -20,12 +20,14 @@ import { SITE_MAP } from "@/common/constants/siteMap";
 import Link from "next/link";
 import { VERIFY_EMAIL } from "@/common/constants/timer";
 import { useCooldownTimer } from "@/lib/hooks/useCooldownTimer";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { omit } from "@/lib/helpers/data";
 import { API_METHODS } from "@/common/constants/apiMethods";
 
 export default function SignUp() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const referralToken = searchParams?.get("_tk") ?? undefined;
   const { startTimer } = useCooldownTimer(
     VERIFY_EMAIL.TIMER_LOCAL_STORAGE_KEY,
     VERIFY_EMAIL.TIMER_DURATION
@@ -57,8 +59,11 @@ export default function SignUp() {
       }
 
       const dataToSend = omit(formData, ["confirmPassword"]);
+      const payload = referralToken
+        ? { ...dataToSend, _tk: referralToken }
+        : dataToSend;
 
-      await apiRequest(API_METHODS.POST, API_ENDPOINTS.sign_up, dataToSend);
+      await apiRequest(API_METHODS.POST, API_ENDPOINTS.sign_up, payload);
 
       toast.success("Account created successfully! Please verify your email.");
       startTimer();
