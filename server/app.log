@@ -2455,3 +2455,7 @@
 2025-12-01 17:38:25 [[34mdebug[39m] Database connected successfully!
 2025-12-01 17:42:37 [[32minfo[39m] Mail sent successfully: 250 2.0.0 OK  1764591157 d2e1a72fcca58-7d151ad4d6esm13320333b3a.26 - gsmtp
 2025-12-01 17:49:20 [[32minfo[39m] Mail sent successfully: 250 2.0.0 OK  1764591561 d2e1a72fcca58-7d54b003177sm8026035b3a.14 - gsmtp
+2025-12-06 13:29:20 [[32minfo[39m] Started Your Application on Port 8080
+2025-12-06 13:29:25 [[34mdebug[39m] Database connected successfully!
+2025-12-06 14:58:07 [[32minfo[39m] Started Your Application on Port 8080
+2025-12-06 14:58:07 [[34mdebug[39m] Database connected successfully!

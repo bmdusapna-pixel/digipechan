@@ -3,6 +3,7 @@ import {
   authenticate,
   authorize,
 } from "../../middlewares/jwtAuthenticationMiddleware";
+import requirePin from "../../middlewares/pinAuthenticationMiddleware";
 import { UserRoles } from "../../enums/enums";
 import { upload } from "../../config/multerConfig";
 import { downloadQR } from "../../controllers/admin/orders/orderManagementController";
@@ -71,6 +72,7 @@ qrFlowRoute.post(
 qrFlowRoute.post(
   "/qr/:qrId/permissions",
   authenticate,
+  requirePin,
   authorize([UserRoles.BASIC_USER]),
   updateQRPermissions
 );
@@ -171,6 +173,7 @@ qrFlowRoute.delete(
   "/qr/:qrId/reviews/:reviewId",
   authenticate,
   authorize([UserRoles.BASIC_USER, UserRoles.ADMIN]),
+  requirePin,
   deleteQRReview
 );
 

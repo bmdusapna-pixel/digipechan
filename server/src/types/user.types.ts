@@ -6,6 +6,7 @@ export interface IUser {
   lastName: string;
   email: string;
   password: string;
+  pin?: string;
   phoneNumber?: string;
   altMobileNumber?: string;
   vehicleNumber?: string;

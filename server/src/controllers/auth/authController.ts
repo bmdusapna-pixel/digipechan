@@ -601,6 +601,32 @@ export const updateUserProfile = expressAsyncHandler(
   }
 );
 
+export const setPin = expressAsyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.data?.userId;
+    const { pin } = req.body as { pin?: string };
+
+    if (!userId) {
+      return ApiResponse(res, 401, 'Unauthorized', false, null);
+    }
+
+    if (!pin || typeof pin !== 'string') {
+      return ApiResponse(res, 400, 'PIN is required', false, null);
+    }
+
+    // Basic PIN validation (adjust as needed)
+    if (pin.length < 4 || pin.length > 8) {
+      return ApiResponse(res, 400, 'PIN must be 4-8 characters', false, null);
+    }
+
+    const hashedPin = await bcrypt.hash(String(pin), 10);
+
+    await User.findByIdAndUpdate(userId, { $set: { pin: hashedPin } });
+
+    return ApiResponse(res, 200, 'PIN set/updated successfully', true, null);
+  }
+);
+
 export const resetUserProfile = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.data?.userId;

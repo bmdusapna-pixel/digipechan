@@ -10,6 +10,7 @@ import {
   signUp,
   updateUserProfile,
   resetUserProfile,
+  setPin,
   verifyEmail,
 } from '../../controllers/auth/authController';
 import {
@@ -32,3 +33,4 @@ authRoute.get('/referral-link', authenticate, authorize([UserRoles.BASIC_USER]),
 authRoute.get('/profile', authenticate, authorize([UserRoles.BASIC_USER, UserRoles.SALESPERSON, UserRoles.ADMIN]), getUserFromUserId);
 authRoute.put('/profile', authenticate, authorize([UserRoles.BASIC_USER]), upload.single('avatar'), updateUserProfile);
 authRoute.put('/profile/reset',authenticate, authorize([UserRoles.BASIC_USER]), resetUserProfile);
+authRoute.post('/pin', authenticate, authorize([UserRoles.BASIC_USER, UserRoles.SALESPERSON, UserRoles.ADMIN]), setPin);

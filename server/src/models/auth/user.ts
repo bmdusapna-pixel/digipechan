@@ -84,6 +84,11 @@ const userSchema = new Schema<IUserDocument>(
       type: [String],
       default: []
     }
+    ,
+    pin: {
+      type: String,
+      select: false,
+    }
   },
   {
     timestamps: true,
