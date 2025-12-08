@@ -288,16 +288,23 @@ export const verifyEmail = expressAsyncHandler(
         $set: { isVerified: true },
       });
 
-      if (user.referredBy && !user.referralPointsAwarded) {
+      if (user.referredBy) {
         try {
-          await User.findByIdAndUpdate(user.referredBy, {
-            $inc: { digitalWalletCoins: 5 },
-          });
+          // Mark the new user's referral as awarded (without giving them coins)
+          // Only proceed if referralPointsAwarded was not already true.
+          const updatedUser = await User.findOneAndUpdate(
+            { _id: user._id, referralPointsAwarded: { $ne: true } },
+            { $set: { referralPointsAwarded: true } },
+            { new: true }
+          );
 
-          await User.findByIdAndUpdate(user._id, {
-            $inc: { digitalWalletCoins: 3 },
-            $set: { referralPointsAwarded: true },
-          });
+          // If we successfully marked the new user's referral as awarded,
+          // credit the referrer with 10 coins.
+          if (updatedUser) {
+            await User.findByIdAndUpdate(user.referredBy, {
+              $inc: { digitalWalletCoins: 10 },
+            });
+          }
         } catch (awardErr) {
           console.error("Referral award error:", awardErr);
         }
