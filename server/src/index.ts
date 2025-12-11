@@ -24,6 +24,7 @@ const allowedOrigins = [
   FRONTEND_BASE_URL_PROD_DOMAIN,
   FRONTEND_BASE_URL_PROD_VERCEL,
   // Add your frontend domain here
+  "https://digipehchan.in",
   "https://client-eight-beige.vercel.app",
   "https://digi-pehchan-client.vercel.app",
   RTOAPI,
