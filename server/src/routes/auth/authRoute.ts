@@ -18,6 +18,7 @@ import {
   authorize,
 } from '../../middlewares/jwtAuthenticationMiddleware';
 import requirePin from "../../middlewares/pinAuthenticationMiddleware";
+import requirePassword from '../../middlewares/passwordAuthenticationMiddleware';
 import { UserRoles } from '../../enums/enums';
 import { upload } from '../../config/multerConfig';
 
@@ -32,6 +33,6 @@ authRoute.post('/reset-password', resetPassword);
 authRoute.get('/logout', authenticate, logout);
 authRoute.get('/referral-link', authenticate, authorize([UserRoles.BASIC_USER]), generateReferralLink);
 authRoute.get('/profile', authenticate, authorize([UserRoles.BASIC_USER, UserRoles.SALESPERSON, UserRoles.ADMIN]), getUserFromUserId);
-authRoute.put('/profile', authenticate, authorize([UserRoles.BASIC_USER]), upload.single('avatar'),requirePin, updateUserProfile);
-authRoute.put('/profile/reset',authenticate, authorize([UserRoles.BASIC_USER]),requirePin, resetUserProfile);
+authRoute.put('/profile', authenticate, authorize([UserRoles.BASIC_USER]), upload.single('avatar'),requirePassword, updateUserProfile);
+authRoute.put('/profile/reset',authenticate, authorize([UserRoles.BASIC_USER]),requirePassword, resetUserProfile);
 authRoute.post('/pin', authenticate, authorize([UserRoles.BASIC_USER, UserRoles.SALESPERSON, UserRoles.ADMIN]), setPin);

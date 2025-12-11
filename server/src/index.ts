@@ -7,6 +7,7 @@ import {
   MAX_RETRIES,
   PORT,
   RTOAPI,
+  NODE_ENV,
 } from "./secrets";
 import { connectToDatabase } from "./config/database";
 import logger from "./config/logger";
@@ -74,7 +75,13 @@ app.post("/vehicle", async (req, res) => {
   res.json(data);
 });
 
-app.use("/api", apiRouter);
+if (NODE_ENV === "dev") {
+  app.use("/api", apiRouter);
+  logger.info("Mounted /api routes (dev mode)");
+} else {
+  app.use("/", apiRouter);
+  logger.info(`Mounted / routes; NODE_ENV=${NODE_ENV}`);
+}
 
 app.listen(PORT, () => {
   logger.info(`Started Your Application on Port ${PORT}`);
