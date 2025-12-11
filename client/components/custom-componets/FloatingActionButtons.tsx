@@ -15,7 +15,7 @@ const FloatingActionButtons = () => {
 
             {/* WhatsApp Button with Ripple */}
             <Link
-                href="https://wa.me/919876543210?text=Hi%20Digi%20Pehchan%20Team%2C%20I'm%20interested%20in%20your%20tags"
+                href="https://wa.me/911169290306?text=Hi%20Digi%20Pehchan%20Team%2C%20I'm%20interested%20in%20your%20tags"
                 target="_blank"
                 rel="noopener noreferrer"
             >

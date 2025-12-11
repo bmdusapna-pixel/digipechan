@@ -50,7 +50,7 @@ const ImageSlider = () => {
   return (
     <div className="mt-10 w-full max-w-5xl mx-auto">
       {/* Image Slider */}
-      <div
+      {/* <div
         className="relative w-full h-60 sm:h-80 md:h-[400px] overflow-hidden rounded-2xl shadow-xl"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -72,10 +72,10 @@ const ImageSlider = () => {
             />
           </div>
         ))}
-      </div>
+      </div> */}
 
       {/* Dots */}
-      <div className="mt-4 flex justify-center gap-2">
+      {/* <div className="mt-4 flex justify-center gap-2">
         {sliderImages.map((_, index) => (
           <button
             key={index}
@@ -85,7 +85,7 @@ const ImageSlider = () => {
             }`}
           />
         ))}
-      </div>
+      </div> */}
 
       {/* Video Below Slider */}
       <div className="mt-8 w-full rounded-2xl overflow-hidden shadow-lg">

@@ -20,7 +20,7 @@ const AppDownloadSection = () => {
             Hope you never meet wrong parking or an accident—but if it happens, Digi Pehchan Tag will assist.
           </p>
           <a
-            href="https://play.google.com/store/apps/details?id=com.yourapp.id"
+            href="https://play.google.com/store/apps/details?id=com.bmdu.digipehchaan"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-lg shadow transition-all"

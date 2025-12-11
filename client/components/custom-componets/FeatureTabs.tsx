@@ -107,7 +107,7 @@ const FeatureTabs = () => {
       </div>
 
       {/* WhatsApp CTA */}
-      <div className="text-center">
+      {/* <div className="text-center">
         <a
           href="https://wa.me/?text=Check%20out%20these%20smart%20QR%20tags!%20https://yourwebsite.com"
           target="_blank"
@@ -117,7 +117,7 @@ const FeatureTabs = () => {
           <FaWhatsapp className="text-lg sm:text-xl" />
           Share us on WhatsApp
         </a>
-      </div>
+      </div> */}
     </section>
   );
 };

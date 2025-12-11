@@ -73,7 +73,7 @@ const HowItWorks = () => {
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
         {/* Section Header */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -107,10 +107,10 @@ const HowItWorks = () => {
           >
             Recover your lost items in just four simple steps.
           </motion.p>
-        </motion.div>
+        </motion.div> */}
 
         {/* Steps */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {/* <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((step, index) => (
             <motion.div
               key={index}
@@ -120,11 +120,9 @@ const HowItWorks = () => {
               viewport={{ once: true, margin: "-100px" }}
               className="group relative"
             >
-              {/* Glow effect on hover */}
               <div
                 className={`absolute -inset-1 rounded-2xl bg-gradient-to-br ${step.color} opacity-0 blur-lg transition-all duration-500 group-hover:opacity-100`}
               />
-              {/* Main card */}
               <div
                 className={`relative h-full bg-gradient-to-br ${step.color} rounded-2xl p-[1.5px] backdrop-blur-sm`}
               >
@@ -148,10 +146,10 @@ const HowItWorks = () => {
               </div>
             </motion.div>
           ))}
-        </div>
+        </div> */}
 
         {/* CTA Button */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.8 }}
@@ -161,8 +159,8 @@ const HowItWorks = () => {
           <button className="text-primary-foreground rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] px-6 sm:px-10 py-3 sm:py-5 text-sm sm:text-base font-medium shadow-xl backdrop-blur-sm transition-all hover:scale-105 hover:shadow-2xl">
             Get Started Now
           </button>
-              </motion.div>
-<motion.div
+              </motion.div> */}
+{/* <motion.div
   initial={{ opacity: 0 }}
   whileInView={{ opacity: 1 }}
   transition={{ duration: 0.6, delay: 1 }}
@@ -178,10 +176,10 @@ const HowItWorks = () => {
     <FaWhatsapp className="text-2xl" />
     Share us on WhatsApp
   </a>
-    </motion.div>
+    </motion.div> */}
         <ImageSlider />
-        <RechargeSection />
-        <LocationSection />
+        {/* <RechargeSection /> */}
+        {/* <LocationSection /> */}
         <FranchiseSection />
         <AppDownloadSection />
       </div>

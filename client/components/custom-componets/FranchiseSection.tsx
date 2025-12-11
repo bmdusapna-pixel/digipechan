@@ -25,7 +25,7 @@ const franchiseFeatures = [
 
 const franchiseBenefits = [
   "Pamphlets, Brochure, Standee, Sales Pitch, Videos And Pictures.",
-  "All Paper Works For Required For Selling NGFI32 Parking Tags.",
+  "All Paper Works For Required For Selling DigiPehchan Parking Tags.",
   "Dedicated Manager",
   "Exclusive Rights In Your City*.",
   "Upto 50% Of Your Field Sales Person*."

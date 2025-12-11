@@ -31,12 +31,13 @@ const HeroSection = () => {
             <div className="bg-muted relative flex flex-col items-center px-4 pt-20 text-center">
                 {/* Hero Content */}
                 <div className="z-10 w-full max-w-2xl">
-                    <h1 className="text-4xl leading-tight font-extrabold sm:text-5xl">
-                        Welcome To Digi Pehchan Tag
+                    <h1 className="text-2xl leading-tight font-extrabold sm:text-3xl">
+                        {/* Welcome To Digi Pehchan Tag
                         <br />
                         <HighlightText text="India's No 1" />
                         <br />
-                        Lost & Found Brand
+                        Lost & Found Brand */}
+                        Welcome to <HighlightText text="Digi pehchan India's first One"/> Click solution for finding <HighlightText text="Missing Person's"/> And Allow People to contact you in case of any issue with your <HighlightText text="parked vehicle." />
                     </h1>
 
                     {/* Promo Slider */}
@@ -111,7 +112,7 @@ const HeroSection = () => {
                 <div className="relative mt-12 w-full max-w-xs sm:max-w-sm md:max-w-md">
                     <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[50px] shadow-xl">
                         <Image
-                            src="/pahechankaro-iamge.png"
+                            src="/missing.jpeg"
                             alt="Woman giving a thumbs up while holding a smartphone"
                             className="h-full w-full object-contain"
                             width={1100}
