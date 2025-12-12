@@ -82,7 +82,8 @@ export const initiatePayment = expressAsyncHandler(
     // - Customer cart flow: keep existing frontend redirect and let FE poll /payment-status
     const isSalesmanFlow = Boolean(qrId);
     const backendUrl = NODE_ENV === 'dev' ? BACKEND_BASE_URL : BACKEND_PROD_URL;
-    const frontendBaseUrl = "https://client-eight-beige.vercel.app";
+    const frontendBaseUrl =
+      NODE_ENV === "dev" ? FRONTEND_BASE_URL_DEV : FRONTEND_BASE_URL_PROD_DOMAIN;
     const redirectUrl = isSalesmanFlow
       ? `${backendUrl}/api/qr-flow/payment/verify-payment`
       : `${frontendBaseUrl}/payment-status`;
@@ -255,7 +256,8 @@ export const paymentCallBackHandler = expressAsyncHandler(
       await transaction.save();
     }
 
-    const frontendBaseUrl = "https://client-eight-beige.vercel.app";
+    const frontendBaseUrl =
+      NODE_ENV === "dev" ? FRONTEND_BASE_URL_DEV : FRONTEND_BASE_URL_PROD_DOMAIN;
     const redirectFrontendUrl = `${frontendBaseUrl}/payment-status?transactionId=${transactionId}`;
 
     // return ApiResponse(res,200, 'Phone Pe Payment completed!', true, redirectFrontendUrl);
@@ -358,6 +360,69 @@ export const paymentStatusHandler = expressAsyncHandler(
         items: transaction.items,
         amount: transaction.amount,
       }
+    );
+  }
+);
+
+// ---------------------- DEMO HANDLERS (no external API / DB calls) ----------------------
+// These handlers simulate the behaviour of the real controllers for testing/demo
+export const initiatePaymentDemo = expressAsyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { items = [], amount } = req.body as any;
+    const transactionId = new mongoose.Types.ObjectId();
+
+    const mockAmount =
+      typeof amount === "number" && amount > 0
+        ? amount
+        : (items?.length ?? 0) * 100; // fallback mock calculation
+
+    const demoPaymentUrl = `https://demo.payment/gateway/${transactionId.toString()}`;
+
+    // Return same shape as original handler on success (payment_url string)
+    return ApiResponse(res, 200, "Payment initiated", true, demoPaymentUrl);
+  }
+);
+
+export const paymentCallBackHandlerDemo = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const { client_txn_id: transactionId } = req.query as any;
+
+    if (!transactionId)
+      return ApiResponse(res, 400, "Missing Txn ID", false, null);
+
+    // Mirror original redirect (no extra query params)
+    const frontendBaseUrl =
+      NODE_ENV === "dev" ? FRONTEND_BASE_URL_DEV : FRONTEND_BASE_URL_PROD_DOMAIN;
+    const redirectFrontendUrl = `${frontendBaseUrl}/payment-status?transactionId=${transactionId}`;
+
+    return res.redirect(redirectFrontendUrl);
+  }
+);
+
+export const paymentStatusHandlerDemo = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const { transactionId, client_txn_id } = req.query as any;
+    const id = transactionId || client_txn_id;
+    if (!id) return ApiResponse(res, 400, "Missing transaction id", false, null);
+
+    // Return same shape as original: { paymentStatus, items, amount }
+    const demoResponse = {
+      paymentStatus: PaymentTransactionStatus.PAID,
+      items: [
+        {
+          qrTypeId: "demo-qrtype",
+          quantity: 1,
+        },
+      ],
+      amount: 100,
+    };
+
+    return ApiResponse(
+      res,
+      200,
+      "Payment information fetched successfully",
+      true,
+      demoResponse
     );
   }
 );

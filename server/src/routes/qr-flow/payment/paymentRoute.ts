@@ -5,9 +5,9 @@ import {
 } from "../../../middlewares/jwtAuthenticationMiddleware";
 import { UserRoles } from "../../../enums/enums";
 import {
-  initiatePayment,
-  paymentStatusHandler,
-  paymentCallBackHandler,
+  initiatePaymentDemo,
+  paymentStatusHandlerDemo,
+  paymentCallBackHandlerDemo,
 } from "../../../controllers/payment/paymentController";
 import { User } from "../../../models/auth/user";
 
@@ -17,19 +17,19 @@ paymentRoute.post(
   "/initiate",
   authenticate,
   authorize([UserRoles.BASIC_USER, UserRoles.SALESPERSON]),
-  initiatePayment
+  initiatePaymentDemo
 );
 
 paymentRoute.get(
   "/verify-payment",
   // authenticate,
   // authorize([UserRoles.BASIC_USER]),
-  paymentCallBackHandler
+  paymentCallBackHandlerDemo
 );
 
 paymentRoute.get(
   "/payment-status",
   // authenticate,
   // authorize([UserRoles.BASIC_USER]),
-  paymentStatusHandler
+  paymentStatusHandlerDemo
 );
