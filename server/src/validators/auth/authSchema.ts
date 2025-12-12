@@ -20,7 +20,7 @@ export const signUpSchema = z.object({
     .nonempty({ message: "Phone number cannot be empty!" }),
   password: z
     .string()
-    .min(6, { message: "Password should have 6 or more characters" })
+    .min(4, { message: "Password should have 4 or more characters" })
     .nonempty({ message: "Password cannot be empty" }),
   _tk: z.string().optional(),
   token: z.string().optional(),
@@ -30,7 +30,7 @@ export const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email format" }),
   password: z
     .string()
-    .min(6, { message: "Password should have 6 or more characters" })
+    .min(4, { message: "Password should have 4 or more characters" })
     .nonempty({ message: "Password cannot be empty" }),
   token: z.string().optional(),
 });
@@ -43,7 +43,7 @@ export const resetPasswordSchema = z.object({
   token: z.string(),
   password: z
     .string()
-    .min(6, { message: "Password should have 6 or more characters" })
+    .min(4, { message: "Password should have 4 or more characters" })
     .nonempty({ message: "Password cannot be empty" }),
 });
 

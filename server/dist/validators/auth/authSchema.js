@@ -15,7 +15,7 @@ exports.signUpSchema = zod_1.z.object({
     // phoneNumber : mobileNumberSchema,
     password: zod_1.z
         .string()
-        .min(6, { message: 'Password should have 6 or more characters' })
+        .min(4, { message: 'Password should have 4 or more characters' })
         .nonempty({ message: 'Password cannot be empty' }),
     _tk: zod_1.z.string().optional()
 });
@@ -23,7 +23,7 @@ exports.loginSchema = zod_1.z.object({
     email: zod_1.z.string().email({ message: 'Invalid email format' }),
     password: zod_1.z
         .string()
-        .min(6, { message: 'Password should have 6 or more characters' })
+        .min(4, { message: 'Password should have 4 or more characters' })
         .nonempty({ message: 'Password cannot be empty' }),
 });
 exports.forgotPasswordSchema = zod_1.z.object({
@@ -33,7 +33,7 @@ exports.resetPasswordSchema = zod_1.z.object({
     token: zod_1.z.string(),
     password: zod_1.z
         .string()
-        .min(6, { message: 'Password should have 6 or more characters' })
+        .min(4, { message: 'Password should have 4 or more characters' })
         .nonempty({ message: 'Password cannot be empty' }),
 });
 exports.verifyEmailSchema = zod_1.z.object({
