@@ -481,6 +481,66 @@ export const downloadSharedBundle = expressAsyncHandler(
     res.send(pdfBuffer);
   }
 );
+
+// Admin: Generate share link for individual QR (auth required)
+export const generateQRShareLink = expressAsyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { qrId } = req.params;
+
+    if (!qrId) {
+      return ApiResponse(res, 400, "QR ID is required", false, null);
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(qrId)) {
+      return ApiResponse(res, 400, "Invalid QR ID", false, null);
+    }
+
+    const qr = await QRModel.findById(qrId);
+    if (!qr) {
+      return ApiResponse(res, 404, "QR not found", false, null);
+    }
+
+    const token = crypto.randomBytes(24).toString("hex");
+    qr.shareToken = token;
+    qr.shareTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    await qr.save();
+
+    const shareUrl = `${BACKEND_PROD_URL}/api/qr-flow/share/qrs/${token}`;
+    return ApiResponse(res, 200, "Share link generated", true, { shareUrl });
+  }
+);
+
+// Public: Download individual QR via share link (no auth)
+export const downloadSharedQR = expressAsyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { token } = req.params;
+
+    const qr = await QRModel.findOne({
+      shareToken: token,
+      shareTokenExpiresAt: { $gt: new Date() },
+    })
+      .populate("qrTypeId")
+      .populate("createdBy", "firstName lastName")
+      .lean();
+
+    if (!qr) {
+      return ApiResponse(res, 404, "Invalid or expired share link", false, null);
+    }
+
+    if (!qr.qrTypeId) {
+      return ApiResponse(res, 404, "QR type not found", false, null);
+    }
+
+    const pdfBuffer = await generateQRPDF(qr, qr.qrTypeId);
+
+    const fileName = `qr_${qr.serialNumber}.pdf`;
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.setHeader("Content-Length", pdfBuffer.length);
+
+    res.send(pdfBuffer);
+  }
+);
 // Get QRs in a specific bundle for salesman
 export const getBundleQRs = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {

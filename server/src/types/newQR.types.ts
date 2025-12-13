@@ -46,6 +46,8 @@ export interface IQR extends Document {
   transactionId?: string;
   qrUrl: string;
   qrRawData: string;
+  shareToken?: string;
+  shareTokenExpiresAt?: Date;
   textMessagesAllowed?: boolean;
   voiceCallsAllowed?: boolean;
   videoCallsAllowed?: boolean;

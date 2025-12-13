@@ -8,6 +8,10 @@ import requirePassword from "../../middlewares/passwordAuthenticationMiddleware"
 import { UserRoles } from "../../enums/enums";
 import { upload } from "../../config/multerConfig";
 import { downloadQR } from "../../controllers/admin/orders/orderManagementController";
+import {
+  generateQRShareLink,
+  downloadSharedQR,
+} from "../../controllers/admin/orders/orderManagementController";
 import { createNewQRType } from "../../controllers/qr-flow/createNewQRTypeController";
 import {
   fetchTypesOfQRBasedOnDelivery,
@@ -194,3 +198,14 @@ qrFlowRoute.get(
   authorize([UserRoles.BASIC_USER, UserRoles.SALESPERSON, UserRoles.ADMIN]),
   downloadQR
 );
+
+// Generate share link for individual QR (authenticated)
+qrFlowRoute.post(
+  "/qrs/:qrId/share",
+  authenticate,
+  authorize([UserRoles.BASIC_USER, UserRoles.SALESPERSON, UserRoles.ADMIN]),
+  generateQRShareLink
+);
+
+// Public: download individual QR via share token
+qrFlowRoute.get("/share/qrs/:token", downloadSharedQR);

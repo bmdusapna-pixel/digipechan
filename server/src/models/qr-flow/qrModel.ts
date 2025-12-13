@@ -128,6 +128,14 @@ const qrSchema = new Schema<IQR>(
     qrRawData: {
       type: String,
     },
+    shareToken: {
+      type: String,
+      default: null,
+    },
+    shareTokenExpiresAt: {
+      type: Date,
+      default: null,
+    },
     textMessagesAllowed: {
       type: Boolean,
       default: false,

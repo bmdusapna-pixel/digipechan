@@ -9,10 +9,10 @@ import { ApiResponse } from '../config/ApiResponse';
 export const requirePassword = expressAsyncHandler(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const providedPassword =
-      (req.body && (req.body as any).password) ||
+      (req.body && (req.body as any).xpassword) ||
       (req.headers && (req.headers['x-password'] as string)) ||
-      (req.query && (req.query as any).password) ||
-      (req.params && (req.params as any).password);
+      (req.query && (req.query as any).xpassword) ||
+      (req.params && (req.params as any).xpassword);
 
     if (!providedPassword) {
       return ApiResponse(
