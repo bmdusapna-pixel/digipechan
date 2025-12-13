@@ -137,6 +137,33 @@ export const generateBundlePDF = async (bundle: any) => {
         });
       }
 
+        // Draw first part of serial (before '-') at top of the template
+        try {
+          const serialFull = (qr.serialNumber || "").toString();
+          const firstPart = serialFull.split("-")[0] || "";
+          if (firstPart) {
+            const maxTextWidth = templateSize - 20;
+            const textWidthAt1 = font.widthOfTextAtSize(firstPart, 1);
+            let textSize = textWidthAt1 > 0 ? Math.min(8, maxTextWidth / textWidthAt1) : 8;
+            if (textSize < 5) textSize = 5;
+            const textWidth = font.widthOfTextAtSize(firstPart, textSize);
+            const textX = x + (templateSize - textWidth) / 2;
+            // position 10px above the QR image
+            const yQR = y - templateSize + (templateSize - qrSize) / 2 - 40;
+            let textY = yQR + qrSize + 5;
+            if (textY > height - 20) textY = height - 20;
+            page.drawText(firstPart, {
+              x: textX,
+              y: textY,
+              size: textSize,
+              font: boldFont,
+              color: rgb(0, 0, 0),
+            });
+          }
+        } catch (err) {
+          // ignore
+        }
+
       // QR type icon
       if (qrTypeIcon) {
         page.drawImage(qrTypeIcon, {
@@ -159,15 +186,66 @@ export const generateBundlePDF = async (bundle: any) => {
             width: qrSize,
             height: qrSize,
           });
+          // Draw last 5 characters of serial centered below QR (reduced gap)
+          try {
+            const serialFull = (qr.serialNumber || "").toString();
+            const last5 = serialFull.slice(-5) || "";
+            if (last5) {
+              const xQR = x + (templateSize - qrSize) / 2;
+              const yQR = y - templateSize + (templateSize - qrSize) / 2 - 40;
+              const maxTextWidth = qrSize;
+              const textWidthAt1 = font.widthOfTextAtSize(last5, 1);
+                let textSize = textWidthAt1 > 0 ? Math.min(6, maxTextWidth / textWidthAt1) : 6;
+                if (textSize < 3) textSize = 3;
+              const textWidth = font.widthOfTextAtSize(last5, textSize);
+              const textX = xQR + (qrSize - textWidth) / 2;
+              const textY = yQR - 8; // decreased gap
+              page.drawText(last5, {
+                x: textX,
+                y: textY,
+                size: textSize,
+                font: boldFont,
+                color: rgb(0, 0, 0),
+              });
+            }
+          } catch (err) {
+            // ignore
+          }
         }
       } catch (e) {
-        page.drawText(`QR ${qr.serialNumber}`, {
-          x: x + templateSize / 2 - 30,
-          y: y - templateSize / 2,
-          size: 16,
-          font: boldFont,
-          color: rgb(0.7, 0.7, 0.7),
-        });
+        // fallback placeholder and serial parts
+        try {
+          const serialFull = (qr.serialNumber || "").toString();
+          const firstPart = serialFull.split("-")[0] || serialFull;
+          page.drawText(`QR ${firstPart}`, {
+            x: x + templateSize / 2 - 30,
+            y: y - templateSize / 2,
+            size: 12,
+            font: boldFont,
+            color: rgb(0.7, 0.7, 0.7),
+          });
+          const last5 = serialFull.slice(-5) || "";
+          if (last5) {
+            const xQR = x + (templateSize - qrSize) / 2;
+            const yQR = y - templateSize + (templateSize - qrSize) / 2 - 40;
+            const maxTextWidth = qrSize;
+            const textWidthAt1 = font.widthOfTextAtSize(last5, 1);
+            let textSize = textWidthAt1 > 0 ? Math.min(6, maxTextWidth / textWidthAt1) : 6;
+            if (textSize < 3) textSize = 3;
+            const textWidth = font.widthOfTextAtSize(last5, textSize);
+            const textX = xQR + (qrSize - textWidth) / 2;
+            const textY = yQR - 5;
+            page.drawText(last5, {
+              x: textX,
+              y: textY,
+              size: textSize,
+              font: boldFont,
+              color: rgb(0.7, 0.7, 0.7),
+            });
+          }
+        } catch (err) {
+          // ignore
+        }
       }
     }
   }
@@ -222,8 +300,8 @@ export const generateQRPDF = async (qr: any, qrType: any) => {
   const page = pdfDoc.addPage();
   const { width, height } = page.getSize();
 
-  // Header
-  page.drawText(`QR: ${qr.serialNumber}`, {
+  // Header label
+  page.drawText(`QR`, {
     x: margin,
     y: height - margin,
     size: 18,
@@ -274,6 +352,33 @@ export const generateQRPDF = async (qr: any, qrType: any) => {
     });
   }
 
+  // Draw first part of serial (before '-') at top of the QR template (not top of page)
+  try {
+    const serialFull = (qr.serialNumber || "").toString();
+    const firstPart = serialFull.split("-")[0] || "";
+    if (firstPart) {
+      const maxTextWidth = templateSize - 20;
+      const textWidthAt1 = font.widthOfTextAtSize(firstPart, 1);
+      let textSize = textWidthAt1 > 0 ? Math.min(8, maxTextWidth / textWidthAt1) : 8;
+      if (textSize < 5) textSize = 5;
+      const textWidth = font.widthOfTextAtSize(firstPart, textSize);
+      const textX = startX + (templateSize - textWidth) / 2;
+      // position 10px above the QR image for single-QR page
+      const yQR = startY - templateSize + (templateSize - qrSize) / 2 - 40;
+      let textY = yQR + qrSize + 5;
+      if (textY > height - 20) textY = height - 20;
+      page.drawText(firstPart, {
+        x: textX,
+        y: textY,
+        size: textSize,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+    }
+  } catch (err) {
+    // ignore
+  }
+
   // QR type icon
   if (qrTypeIcon) {
     page.drawImage(qrTypeIcon, {
@@ -296,15 +401,66 @@ export const generateQRPDF = async (qr: any, qrType: any) => {
         width: qrSize,
         height: qrSize,
       });
+      // Draw serial number centered below the QR image and scaled to fit QR width
+      try {
+        const serialFull = (qr.serialNumber || "").toString();
+        const last5 = serialFull.slice(-5) || "";
+        if (last5) {
+          const xQR = startX + (templateSize - qrSize) / 2;
+          const yQR = startY - templateSize + (templateSize - qrSize) / 2 - 40;
+          const maxTextWidth = qrSize;
+          const textWidthAt1 = font.widthOfTextAtSize(last5, 1);
+          let textSize = textWidthAt1 > 0 ? Math.min(6, maxTextWidth / textWidthAt1) : 6;
+          if (textSize < 3) textSize = 3;
+          const textWidth = font.widthOfTextAtSize(last5, textSize);
+          const textX = xQR + (qrSize - textWidth) / 2;
+          const textY = yQR - 5; // decreased gap
+          page.drawText(last5, {
+            x: textX,
+            y: textY,
+            size: textSize,
+            font: boldFont,
+            color: rgb(0, 0, 0),
+          });
+        }
+      } catch (e) {
+        // ignore text drawing errors
+      }
     }
   } catch (e) {
-    page.drawText(`QR ${qr.serialNumber}`, {
-      x: startX + templateSize / 2 - 30,
-      y: startY - templateSize / 2,
-      size: 16,
-      font: boldFont,
-      color: rgb(0.7, 0.7, 0.7),
-    });
+    // fallback placeholder and serial parts
+    try {
+      const serialFull = (qr.serialNumber || "").toString();
+      const firstPart = serialFull.split("-")[0] || serialFull;
+      page.drawText(`QR ${firstPart}`, {
+        x: startX + templateSize / 2 - 30,
+        y: startY - templateSize / 2,
+        size: 12,
+        font: boldFont,
+        color: rgb(0.7, 0.7, 0.7),
+      });
+      const last5 = serialFull.slice(-5) || "";
+      if (last5) {
+        const xQR = startX + (templateSize - qrSize) / 2;
+        const yQR = startY - templateSize + (templateSize - qrSize) / 2 - 40;
+        const maxTextWidth = qrSize;
+        const textWidthAt1 = font.widthOfTextAtSize(last5, 1);
+        let textSize = textWidthAt1 > 0 ? Math.min(6, maxTextWidth / textWidthAt1) : 6;
+        if (textSize < 3) textSize = 3;
+        const textWidth = font.widthOfTextAtSize(last5, textSize);
+        const textX = xQR + (qrSize - textWidth) / 2;
+        const textY = yQR - 5;
+        page.drawText(last5, {
+          x: textX,
+          y: textY,
+          size: textSize,
+          font: boldFont,
+          color: rgb(0.7, 0.7, 0.7),
+        });
+      }
+    } catch (err) {
+      // ignore
+    }
   }
 
   const pdfBytes = await pdfDoc.save();
