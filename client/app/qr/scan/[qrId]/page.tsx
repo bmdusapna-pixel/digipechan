@@ -205,6 +205,9 @@ export default function QRScanPage() {
           </CardHeader>
           <CardContent>
             <div className="text-center space-y-2">
+              { qr?.createdFor && <div className="flex justify-center mb-2">
+                <img className="h-30 w-30 rounded-full object-cover" src={qr.createdFor.avatar || ""} alt={`${qr.createdFor.firstName} ${qr.createdFor.lastName}`} />
+              </div>}
               <h3 className="text-lg font-semibold">{qr.qrTypeId.qrName}</h3>
               {tagType && (
                 <Badge variant="outline" className="text-sm">

@@ -28,6 +28,7 @@ export interface QRScanResponse {
         videoCallsAllowed?: boolean;
         createdFor?: {
             _id: string;
+            avatar?: string;
             firstName: string;
             lastName: string;
             mobileNumber?: string;
