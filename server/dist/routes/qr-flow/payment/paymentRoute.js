@@ -9,12 +9,12 @@ const jwtAuthenticationMiddleware_1 = require("../../../middlewares/jwtAuthentic
 const enums_1 = require("../../../enums/enums");
 const paymentController_1 = require("../../../controllers/payment/paymentController");
 exports.paymentRoute = express_1.default.Router();
-exports.paymentRoute.post("/initiate", jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([enums_1.UserRoles.BASIC_USER, enums_1.UserRoles.SALESPERSON]), paymentController_1.initiatePayment);
+exports.paymentRoute.post("/initiate", jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([enums_1.UserRoles.BASIC_USER, enums_1.UserRoles.SALESPERSON]), paymentController_1.initiatePaymentDemo);
 exports.paymentRoute.get("/verify-payment", 
 // authenticate,
 // authorize([UserRoles.BASIC_USER]),
-paymentController_1.paymentCallBackHandler);
+paymentController_1.paymentCallBackHandlerDemo);
 exports.paymentRoute.get("/payment-status", 
 // authenticate,
 // authorize([UserRoles.BASIC_USER]),
-paymentController_1.paymentStatusHandler);
+paymentController_1.paymentStatusHandlerDemo);

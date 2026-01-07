@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getBundleQRs = exports.downloadSharedBundle = exports.generateShareLink = exports.downloadBundleQRs = exports.assignBundleToSalesperson = exports.getBundles = exports.bulkGenerateQRs = exports.updateOrderInformation = exports.getAllOrderInformation = void 0;
+exports.downloadQR = exports.getBundleQRs = exports.downloadSharedQR = exports.generateQRShareLink = exports.downloadSharedBundle = exports.generateShareLink = exports.downloadBundleQRs = exports.assignBundleToSalesperson = exports.getBundles = exports.bulkGenerateQRs = exports.updateOrderInformation = exports.getAllOrderInformation = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const ApiResponse_1 = require("../../../config/ApiResponse");
 const constants_1 = require("../../../config/constants");
@@ -206,6 +206,7 @@ exports.bulkGenerateQRs = (0, express_async_handler_1.default)((req, res) => __a
             qrStatus: constants_1.QRStatus.INACTIVE,
             bundleId: bundleId, // Add bundle ID to QR
             price: unitPrice,
+            tagType: tagType,
             questions: questions || [], // Add questions to each QR
         });
         generatedQRs.push(qr);
@@ -345,6 +346,49 @@ exports.downloadSharedBundle = (0, express_async_handler_1.default)((req, res) =
     res.setHeader("Content-Length", pdfBuffer.length);
     res.send(pdfBuffer);
 }));
+// Admin: Generate share link for individual QR (auth required)
+exports.generateQRShareLink = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { qrId } = req.params;
+    if (!qrId) {
+        return (0, ApiResponse_1.ApiResponse)(res, 400, "QR ID is required", false, null);
+    }
+    if (!mongoose_1.default.Types.ObjectId.isValid(qrId)) {
+        return (0, ApiResponse_1.ApiResponse)(res, 400, "Invalid QR ID", false, null);
+    }
+    const qr = yield qrModel_1.QRModel.findById(qrId);
+    if (!qr) {
+        return (0, ApiResponse_1.ApiResponse)(res, 404, "QR not found", false, null);
+    }
+    const token = crypto_1.default.randomBytes(24).toString("hex");
+    qr.shareToken = token;
+    qr.shareTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    yield qr.save();
+    const shareUrl = `${secrets_1.BACKEND_PROD_URL}/api/qr-flow/share/qrs/${token}`;
+    return (0, ApiResponse_1.ApiResponse)(res, 200, "Share link generated", true, { shareUrl });
+}));
+// Public: Download individual QR via share link (no auth)
+exports.downloadSharedQR = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { token } = req.params;
+    const qr = yield qrModel_1.QRModel.findOne({
+        shareToken: token,
+        shareTokenExpiresAt: { $gt: new Date() },
+    })
+        .populate("qrTypeId")
+        .populate("createdBy", "firstName lastName")
+        .lean();
+    if (!qr) {
+        return (0, ApiResponse_1.ApiResponse)(res, 404, "Invalid or expired share link", false, null);
+    }
+    if (!qr.qrTypeId) {
+        return (0, ApiResponse_1.ApiResponse)(res, 404, "QR type not found", false, null);
+    }
+    const pdfBuffer = yield (0, pdfGenerator_1.generateQRPDF)(qr, qr.qrTypeId);
+    const fileName = `qr_${qr.serialNumber}.pdf`;
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.setHeader("Content-Length", pdfBuffer.length);
+    res.send(pdfBuffer);
+}));
 // Get QRs in a specific bundle for salesman
 exports.getBundleQRs = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -376,4 +420,29 @@ exports.getBundleQRs = (0, express_async_handler_1.default)((req, res) => __awai
         console.error("Error fetching bundle QRs:", error);
         return (0, ApiResponse_1.ApiResponse)(res, 500, "Failed to fetch bundle QRs", false, null);
     }
+}));
+exports.downloadQR = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { qrId } = req.params;
+    if (!qrId) {
+        return (0, ApiResponse_1.ApiResponse)(res, 400, "QR ID is required", false, null);
+    }
+    if (!mongoose_1.default.Types.ObjectId.isValid(qrId)) {
+        return (0, ApiResponse_1.ApiResponse)(res, 400, "Invalid QR ID", false, null);
+    }
+    const qr = yield qrModel_1.QRModel.findById(qrId)
+        .populate("qrTypeId")
+        .populate("createdBy", "firstName lastName")
+        .lean();
+    if (!qr) {
+        return (0, ApiResponse_1.ApiResponse)(res, 404, "QR not found", false, null);
+    }
+    if (!qr.qrTypeId) {
+        return (0, ApiResponse_1.ApiResponse)(res, 404, "QR type not found", false, null);
+    }
+    const pdfBuffer = yield (0, pdfGenerator_1.generateQRPDF)(qr, qr.qrTypeId);
+    const fileName = `qr_${qr.serialNumber}.pdf`;
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.setHeader("Content-Length", pdfBuffer.length);
+    res.send(pdfBuffer);
 }));

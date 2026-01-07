@@ -1,0 +1,22 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.bonvoiceRoute = void 0;
+const express_1 = __importDefault(require("express"));
+const jwtAuthenticationMiddleware_1 = require("../../middlewares/jwtAuthenticationMiddleware");
+const bonvoiceController_1 = require("../../controllers/bonvoice/bonvoiceController");
+const bonvoiceTokenController_1 = require("../../controllers/bonvoice/bonvoiceTokenController");
+const enums_1 = require("../../enums/enums");
+const callController_1 = require("../../controllers/bonvoice/callController");
+const callWebhookController_1 = require("../../controllers/bonvoice/callWebhookController");
+const setCallLogController_1 = require("../../controllers/bonvoice/setCallLogController");
+exports.bonvoiceRoute = express_1.default.Router();
+exports.bonvoiceRoute.post("/call-webhook", callWebhookController_1.callWebhook);
+exports.bonvoiceRoute.post("/call-log", setCallLogController_1.setCallLog);
+exports.bonvoiceRoute.post("/call", jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([enums_1.UserRoles.BASIC_USER]), callController_1.startAutoCallBridge);
+exports.bonvoiceRoute.get("/get-bonvoice", jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([enums_1.UserRoles.BASIC_USER]), bonvoiceController_1.getFirstBonvoiceCredential);
+exports.bonvoiceRoute.get("/token", jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([enums_1.UserRoles.BASIC_USER]), bonvoiceTokenController_1.updateBonvoiceToken);
+exports.bonvoiceRoute.post("/create-bonvoice", jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([enums_1.UserRoles.BASIC_USER]), bonvoiceController_1.createBonvoiceCredential);
+exports.bonvoiceRoute.put("/update-bonvoice", jwtAuthenticationMiddleware_1.authenticate, (0, jwtAuthenticationMiddleware_1.authorize)([enums_1.UserRoles.BASIC_USER]), bonvoiceController_1.updateBonvoiceCredential);

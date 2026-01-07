@@ -146,6 +146,14 @@ const qrSchema = new mongoose_1.Schema({
     qrRawData: {
         type: String,
     },
+    shareToken: {
+        type: String,
+        default: null,
+    },
+    shareTokenExpiresAt: {
+        type: Date,
+        default: null,
+    },
     textMessagesAllowed: {
         type: Boolean,
         default: false,
@@ -173,6 +181,20 @@ const qrSchema = new mongoose_1.Schema({
     reviews: {
         type: [reviewSchema],
         default: [],
+    },
+    callLogs: {
+        type: [
+            {
+                time: { type: Date, default: Date.now },
+                connected: { type: Boolean, default: false },
+                from: { type: String, default: null },
+            },
+        ],
+        default: [],
+    },
+    tagType: {
+        type: String,
+        required: false,
     },
     questions: {
         type: [

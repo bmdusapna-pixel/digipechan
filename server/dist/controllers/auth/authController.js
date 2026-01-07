@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateReferralLink = exports.getReferralLink = exports.resetUserProfile = exports.updateUserProfile = exports.getUserFromUserId = exports.logout = exports.resetPassword = exports.forgotPassword = exports.resendVerificationLink = exports.verifyEmail = exports.login = exports.signUp = void 0;
+exports.generateReferralLink = exports.getReferralLink = exports.resetUserProfile = exports.setPin = exports.updateUserProfile = exports.getUserFromUserId = exports.logout = exports.resetPassword = exports.forgotPassword = exports.resendVerificationLink = exports.verifyEmail = exports.login = exports.signUp = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const authSchema_1 = require("../../validators/auth/authSchema");
 const user_1 = require("../../models/auth/user");
@@ -28,7 +28,7 @@ const hashids_1 = __importDefault(require("hashids"));
 const qrModel_1 = require("../../models/qr-flow/qrModel");
 const uploadToCloudinary_1 = require("../../config/uploadToCloudinary");
 exports.signUp = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     try {
         const signUpData = req.body;
         const validation = authSchema_1.signUpSchema.safeParse(signUpData);
@@ -37,21 +37,32 @@ exports.signUp = (0, express_async_handler_1.default)((req, res) => __awaiter(vo
         if (!validation.success)
             return (0, ApiResponse_1.ApiResponse)(res, 400, "Validation failed for User Schema", false, null, "Error occurred in validation");
         const existingUser = yield user_1.User.findOne({
-            email: (_b = validation.data) === null || _b === void 0 ? void 0 : _b.email,
+            $or: [
+                { email: (_b = validation.data) === null || _b === void 0 ? void 0 : _b.email },
+                { phoneNumber: (_c = validation.data) === null || _c === void 0 ? void 0 : _c.phoneNumber },
+            ],
         });
         if (existingUser)
-            return (0, ApiResponse_1.ApiResponse)(res, 400, "User already exists", false, null, "Could not create a user");
+            return (0, ApiResponse_1.ApiResponse)(res, 400, "User already exists with this email or phone number", false, null, "Could not create a user");
         const hashedPassword = yield bcrypt_1.default.hash(validation.data.password, 10);
         const user = yield user_1.User.create(Object.assign(Object.assign({}, validation.data), { password: hashedPassword }));
         if (user) {
-            if ((_c = validation.data) === null || _c === void 0 ? void 0 : _c._tk) {
-                const _tk = hashids.decodeHex((_d = validation.data) === null || _d === void 0 ? void 0 : _d._tk);
-                const referralUser = yield user_1.User.findById(_tk);
-                const totalDigitalPoints = referralUser === null || referralUser === void 0 ? void 0 : referralUser.digitalWalletCoins;
-                const updatedUser = yield user_1.User.updateOne({ _id: _tk }, {
-                    digitalWalletCoins: totalDigitalPoints || 0 + 5,
-                });
+            if ((_d = validation.data) === null || _d === void 0 ? void 0 : _d._tk) {
+                const decodedReferralId = hashids.decodeHex((_e = validation.data) === null || _e === void 0 ? void 0 : _e._tk);
+                const referralUser = yield user_1.User.findById(decodedReferralId);
+                if (referralUser) {
+                    user.referredBy = referralUser._id.toString();
+                    yield user.save();
+                }
             }
+        }
+        if (validation.data.token) {
+            const set = new Set([
+                ...(user.deviceTokens || []),
+                validation.data.token,
+            ]);
+            user.deviceTokens = Array.from(set).slice(-5);
+            yield user.save();
         }
         const verificationToken = jsonwebtoken_1.default.sign({ userId: user._id }, secrets_1.JWT_SECRET, {
             expiresIn: "1h",
@@ -87,6 +98,14 @@ exports.login = (0, express_async_handler_1.default)((req, res) => __awaiter(voi
             return (0, ApiResponse_1.ApiResponse)(res, 401, "Invalid Credentials", false, null, "Login Error!");
         if (!user.isVerified)
             return (0, ApiResponse_1.ApiResponse)(res, 403, "Email is not verified!", false, null, "Unverified Email");
+        if (validation.data.token) {
+            const set = new Set([
+                ...(user.deviceTokens || []),
+                validation.data.token,
+            ]);
+            user.deviceTokens = Array.from(set).slice(-5);
+            yield user.save();
+        }
         const token = jsonwebtoken_1.default.sign({ userId: user._id, roles: user.roles }, secrets_1.JWT_SECRET, {
             expiresIn: "7d",
         });
@@ -128,6 +147,23 @@ exports.verifyEmail = (0, express_async_handler_1.default)((req, res) => __await
         yield user_1.User.findByIdAndUpdate(user._id, {
             $set: { isVerified: true },
         });
+        if (user.referredBy) {
+            try {
+                // Mark the new user's referral as awarded (without giving them coins)
+                // Only proceed if referralPointsAwarded was not already true.
+                const updatedUser = yield user_1.User.findOneAndUpdate({ _id: user._id, referralPointsAwarded: { $ne: true } }, { $set: { referralPointsAwarded: true } }, { new: true });
+                // If we successfully marked the new user's referral as awarded,
+                // credit the referrer with 10 coins.
+                if (updatedUser) {
+                    yield user_1.User.findByIdAndUpdate(user.referredBy, {
+                        $inc: { digitalWalletCoins: 10 },
+                    });
+                }
+            }
+            catch (awardErr) {
+                console.error("Referral award error:", awardErr);
+            }
+        }
         return (0, ApiResponse_1.ApiResponse)(res, 200, "Email verified successfully", true, null);
     }
     catch (err) {
@@ -264,7 +300,7 @@ exports.updateUserProfile = (0, express_async_handler_1.default)((req, res) => _
     if (!userId) {
         return (0, ApiResponse_1.ApiResponse)(res, 401, "Unauthorized", false);
     }
-    const { firstName, lastName, phoneNumber, about, altMobileNumber, vehicleNumber, vehicleType } = req.body;
+    const { firstName, lastName, phoneNumber, about, altMobileNumber, vehicleNumber, vehicleType, } = req.body;
     const file = req.file;
     const user = yield user_1.User.findById(userId);
     if (!user) {
@@ -306,11 +342,29 @@ exports.updateUserProfile = (0, express_async_handler_1.default)((req, res) => _
         vehicleType: user.vehicleType || null,
     });
 }));
+exports.setPin = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const userId = (_a = req.data) === null || _a === void 0 ? void 0 : _a.userId;
+    const { pin } = req.body;
+    if (!userId) {
+        return (0, ApiResponse_1.ApiResponse)(res, 401, 'Unauthorized', false, null);
+    }
+    if (!pin || typeof pin !== 'string') {
+        return (0, ApiResponse_1.ApiResponse)(res, 400, 'PIN is required', false, null);
+    }
+    // Basic PIN validation (adjust as needed)
+    if (pin.length < 4 || pin.length > 8) {
+        return (0, ApiResponse_1.ApiResponse)(res, 400, 'PIN must be 4-8 characters', false, null);
+    }
+    const hashedPin = yield bcrypt_1.default.hash(String(pin), 10);
+    yield user_1.User.findByIdAndUpdate(userId, { $set: { pin: hashedPin } });
+    return (0, ApiResponse_1.ApiResponse)(res, 200, 'PIN set/updated successfully', true, null);
+}));
 exports.resetUserProfile = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const userId = (_a = req.data) === null || _a === void 0 ? void 0 : _a.userId;
     if (!userId) {
-        return (0, ApiResponse_1.ApiResponse)(res, 401, 'Unauthorized', false, null);
+        return (0, ApiResponse_1.ApiResponse)(res, 401, "Unauthorized", false, null);
     }
     const resetFields = {
         avatar: "",
@@ -320,13 +374,15 @@ exports.resetUserProfile = (0, express_async_handler_1.default)((req, res) => __
         altMobileNumber: "",
         vehicleNumber: "",
         vehicleType: "",
-        about: ""
+        about: "",
     };
-    const user = yield user_1.User.findByIdAndUpdate(userId, resetFields, { new: true });
+    const user = yield user_1.User.findByIdAndUpdate(userId, resetFields, {
+        new: true,
+    });
     if (!user) {
-        return (0, ApiResponse_1.ApiResponse)(res, 404, 'User not found', false, null);
+        return (0, ApiResponse_1.ApiResponse)(res, 404, "User not found", false, null);
     }
-    return (0, ApiResponse_1.ApiResponse)(res, 200, 'Profile reset successfully', true, {
+    return (0, ApiResponse_1.ApiResponse)(res, 200, "Profile reset successfully", true, {
         userData: {
             avatar: user.avatar,
             firstName: user.firstName,
@@ -335,8 +391,8 @@ exports.resetUserProfile = (0, express_async_handler_1.default)((req, res) => __
             altMobileNumber: user.altMobileNumber,
             vehicleNumber: user.vehicleNumber,
             vehicleType: user.vehicleType,
-            about: user.about
-        }
+            about: user.about,
+        },
     });
 }));
 const getReferralLink = (userId) => __awaiter(void 0, void 0, void 0, function* () {

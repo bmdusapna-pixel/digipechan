@@ -103,9 +103,21 @@ const userSchema = new mongoose_1.Schema({
         type: Number,
         default: 0
     },
+    referredBy: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: constants_1.COLLECTION_NAMES.USER,
+    },
+    referralPointsAwarded: {
+        type: Boolean,
+        default: false,
+    },
     deviceTokens: {
         type: [String],
         default: []
+    },
+    pin: {
+        type: String,
+        select: false,
     }
 }, {
     timestamps: true,

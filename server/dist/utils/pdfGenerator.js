@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateBundlePDF = void 0;
+exports.generateQRPDF = exports.generateBundlePDF = void 0;
 const pdf_lib_1 = require("pdf-lib");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
@@ -133,6 +133,35 @@ const generateBundlePDF = (bundle) => __awaiter(void 0, void 0, void 0, function
                     height: templateSize,
                 });
             }
+            // Draw first part of serial (before '-') at top of the template
+            try {
+                const serialFull = (qr.serialNumber || "").toString();
+                const firstPart = serialFull.split("-")[0] || "";
+                if (firstPart) {
+                    const maxTextWidth = templateSize - 20;
+                    const textWidthAt1 = font.widthOfTextAtSize(firstPart, 1);
+                    let textSize = textWidthAt1 > 0 ? Math.min(8, maxTextWidth / textWidthAt1) : 8;
+                    if (textSize < 5)
+                        textSize = 5;
+                    const textWidth = font.widthOfTextAtSize(firstPart, textSize);
+                    const textX = x + (templateSize - textWidth) / 2;
+                    // position 10px above the QR image
+                    const yQR = y - templateSize + (templateSize - qrSize) / 2 - 40;
+                    let textY = yQR + qrSize + 5;
+                    if (textY > height - 20)
+                        textY = height - 20;
+                    page.drawText(firstPart, {
+                        x: textX,
+                        y: textY,
+                        size: textSize,
+                        font: boldFont,
+                        color: (0, pdf_lib_1.rgb)(0, 0, 0),
+                    });
+                }
+            }
+            catch (err) {
+                // ignore
+            }
             // QR type icon
             if (qrTypeIcon) {
                 page.drawImage(qrTypeIcon, {
@@ -154,16 +183,71 @@ const generateBundlePDF = (bundle) => __awaiter(void 0, void 0, void 0, function
                         width: qrSize,
                         height: qrSize,
                     });
+                    // Draw last 5 characters of serial centered below QR (reduced gap)
+                    try {
+                        const serialFull = (qr.serialNumber || "").toString();
+                        const last5 = serialFull.slice(-5) || "";
+                        if (last5) {
+                            const xQR = x + (templateSize - qrSize) / 2;
+                            const yQR = y - templateSize + (templateSize - qrSize) / 2 - 40;
+                            const maxTextWidth = qrSize;
+                            const textWidthAt1 = font.widthOfTextAtSize(last5, 1);
+                            let textSize = textWidthAt1 > 0 ? Math.min(6, maxTextWidth / textWidthAt1) : 6;
+                            if (textSize < 3)
+                                textSize = 3;
+                            const textWidth = font.widthOfTextAtSize(last5, textSize);
+                            const textX = xQR + (qrSize - textWidth) / 2;
+                            const textY = yQR - 8; // decreased gap
+                            page.drawText(last5, {
+                                x: textX,
+                                y: textY,
+                                size: textSize,
+                                font: boldFont,
+                                color: (0, pdf_lib_1.rgb)(0, 0, 0),
+                            });
+                        }
+                    }
+                    catch (err) {
+                        // ignore
+                    }
                 }
             }
             catch (e) {
-                page.drawText(`QR ${qr.serialNumber}`, {
-                    x: x + templateSize / 2 - 30,
-                    y: y - templateSize / 2,
-                    size: 16,
-                    font: boldFont,
-                    color: (0, pdf_lib_1.rgb)(0.7, 0.7, 0.7),
-                });
+                // fallback placeholder and serial parts
+                try {
+                    const serialFull = (qr.serialNumber || "").toString();
+                    const firstPart = serialFull.split("-")[0] || serialFull;
+                    page.drawText(`QR ${firstPart}`, {
+                        x: x + templateSize / 2 - 30,
+                        y: y - templateSize / 2,
+                        size: 12,
+                        font: boldFont,
+                        color: (0, pdf_lib_1.rgb)(0.7, 0.7, 0.7),
+                    });
+                    const last5 = serialFull.slice(-5) || "";
+                    if (last5) {
+                        const xQR = x + (templateSize - qrSize) / 2;
+                        const yQR = y - templateSize + (templateSize - qrSize) / 2 - 40;
+                        const maxTextWidth = qrSize;
+                        const textWidthAt1 = font.widthOfTextAtSize(last5, 1);
+                        let textSize = textWidthAt1 > 0 ? Math.min(6, maxTextWidth / textWidthAt1) : 6;
+                        if (textSize < 3)
+                            textSize = 3;
+                        const textWidth = font.widthOfTextAtSize(last5, textSize);
+                        const textX = xQR + (qrSize - textWidth) / 2;
+                        const textY = yQR - 5;
+                        page.drawText(last5, {
+                            x: textX,
+                            y: textY,
+                            size: textSize,
+                            font: boldFont,
+                            color: (0, pdf_lib_1.rgb)(0.7, 0.7, 0.7),
+                        });
+                    }
+                }
+                catch (err) {
+                    // ignore
+                }
             }
         }
     }
@@ -171,3 +255,214 @@ const generateBundlePDF = (bundle) => __awaiter(void 0, void 0, void 0, function
     return Buffer.from(pdfBytes);
 });
 exports.generateBundlePDF = generateBundlePDF;
+const generateQRPDF = (qr, qrType) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    const pdfDoc = yield pdf_lib_1.PDFDocument.create();
+    const font = yield pdfDoc.embedFont(pdf_lib_1.StandardFonts.Helvetica);
+    const boldFont = yield pdfDoc.embedFont(pdf_lib_1.StandardFonts.HelveticaBold);
+    const margin = 50;
+    // Try loading template image
+    let templateImage;
+    try {
+        const templatePath = path_1.default.join(__dirname, "template.png");
+        const buffer = fs_1.default.readFileSync(templatePath);
+        templateImage = yield pdfDoc.embedPng(buffer);
+    }
+    catch (e) {
+        if (e instanceof Error) {
+            console.warn("Template image not found:", e.message);
+        }
+        else {
+            console.warn("Template image not found:", String(e));
+        }
+    }
+    // Try loading QR type icon
+    let qrTypeIcon;
+    try {
+        if ((qrType === null || qrType === void 0 ? void 0 : qrType.qrName) === "Test") {
+            const iconPath = path_1.default.join(__dirname, "policeTag.png");
+            const buffer = fs_1.default.readFileSync(iconPath);
+            qrTypeIcon = yield pdfDoc.embedPng(buffer);
+        }
+        else if (qrType === null || qrType === void 0 ? void 0 : qrType.qrIcon) {
+            const resp = yield (0, node_fetch_1.default)(qrType.qrIcon);
+            if (resp.ok) {
+                const buffer = yield resp.arrayBuffer();
+                qrTypeIcon = yield pdfDoc.embedPng(buffer);
+            }
+        }
+    }
+    catch (e) {
+        if (e instanceof Error) {
+            console.warn("QR type icon not found:", e.message);
+        }
+        else {
+            console.warn("QR type icon not found:", String(e));
+        }
+    }
+    const page = pdfDoc.addPage();
+    const { width, height } = page.getSize();
+    // Header label
+    page.drawText(`QR`, {
+        x: margin,
+        y: height - margin,
+        size: 18,
+        font: boldFont,
+        color: (0, pdf_lib_1.rgb)(0, 0, 0),
+    });
+    page.drawText(`QR Type: ${qrType === null || qrType === void 0 ? void 0 : qrType.qrName}`, {
+        x: margin,
+        y: height - margin - 25,
+        size: 12,
+        font,
+    });
+    page.drawText(`Status: ${qr.qrStatus}`, {
+        x: margin,
+        y: height - margin - 40,
+        size: 12,
+        font,
+    });
+    page.drawText(`Created by: ${((_a = qr.createdBy) === null || _a === void 0 ? void 0 : _a.firstName) || ""} ${((_b = qr.createdBy) === null || _b === void 0 ? void 0 : _b.lastName) || ""}`, {
+        x: margin,
+        y: height - margin - 55,
+        size: 12,
+        font,
+    });
+    // Layout settings
+    const headerHeight = 80;
+    const availableHeight = height - 2 * margin - headerHeight;
+    const availableWidth = width - 2 * margin;
+    const templateSize = 250;
+    const qrSize = 80;
+    const qrTypeIconSize = 50;
+    const startX = margin + (availableWidth - templateSize) / 2;
+    const startY = height - margin - headerHeight + 60;
+    // Template background
+    if (templateImage) {
+        page.drawImage(templateImage, {
+            x: startX,
+            y: startY - templateSize,
+            width: templateSize,
+            height: templateSize,
+        });
+    }
+    // Draw first part of serial (before '-') at top of the QR template (not top of page)
+    try {
+        const serialFull = (qr.serialNumber || "").toString();
+        const firstPart = serialFull.split("-")[0] || "";
+        if (firstPart) {
+            const maxTextWidth = templateSize - 20;
+            const textWidthAt1 = font.widthOfTextAtSize(firstPart, 1);
+            let textSize = textWidthAt1 > 0 ? Math.min(8, maxTextWidth / textWidthAt1) : 8;
+            if (textSize < 5)
+                textSize = 5;
+            const textWidth = font.widthOfTextAtSize(firstPart, textSize);
+            const textX = startX + (templateSize - textWidth) / 2;
+            // position 10px above the QR image for single-QR page
+            const yQR = startY - templateSize + (templateSize - qrSize) / 2 - 40;
+            let textY = yQR + qrSize + 5;
+            if (textY > height - 20)
+                textY = height - 20;
+            page.drawText(firstPart, {
+                x: textX,
+                y: textY,
+                size: textSize,
+                font: boldFont,
+                color: (0, pdf_lib_1.rgb)(0, 0, 0),
+            });
+        }
+    }
+    catch (err) {
+        // ignore
+    }
+    // QR type icon
+    if (qrTypeIcon) {
+        page.drawImage(qrTypeIcon, {
+            x: startX + (templateSize - qrTypeIconSize) / 2,
+            y: startY - templateSize + (templateSize - qrSize) / 2 + qrSize - 20,
+            width: qrTypeIconSize,
+            height: qrTypeIconSize,
+        });
+    }
+    // QR image
+    try {
+        const resp = yield (0, node_fetch_1.default)(qr.qrUrl);
+        if (resp.ok) {
+            const buffer = yield resp.arrayBuffer();
+            const qrImage = yield pdfDoc.embedPng(buffer);
+            page.drawImage(qrImage, {
+                x: startX + (templateSize - qrSize) / 2,
+                y: startY - templateSize + (templateSize - qrSize) / 2 - 40,
+                width: qrSize,
+                height: qrSize,
+            });
+            // Draw serial number centered below the QR image and scaled to fit QR width
+            try {
+                const serialFull = (qr.serialNumber || "").toString();
+                const last5 = serialFull.slice(-5) || "";
+                if (last5) {
+                    const xQR = startX + (templateSize - qrSize) / 2;
+                    const yQR = startY - templateSize + (templateSize - qrSize) / 2 - 40;
+                    const maxTextWidth = qrSize;
+                    const textWidthAt1 = font.widthOfTextAtSize(last5, 1);
+                    let textSize = textWidthAt1 > 0 ? Math.min(6, maxTextWidth / textWidthAt1) : 6;
+                    if (textSize < 3)
+                        textSize = 3;
+                    const textWidth = font.widthOfTextAtSize(last5, textSize);
+                    const textX = xQR + (qrSize - textWidth) / 2;
+                    const textY = yQR - 5; // decreased gap
+                    page.drawText(last5, {
+                        x: textX,
+                        y: textY,
+                        size: textSize,
+                        font: boldFont,
+                        color: (0, pdf_lib_1.rgb)(0, 0, 0),
+                    });
+                }
+            }
+            catch (e) {
+                // ignore text drawing errors
+            }
+        }
+    }
+    catch (e) {
+        // fallback placeholder and serial parts
+        try {
+            const serialFull = (qr.serialNumber || "").toString();
+            const firstPart = serialFull.split("-")[0] || serialFull;
+            page.drawText(`QR ${firstPart}`, {
+                x: startX + templateSize / 2 - 30,
+                y: startY - templateSize / 2,
+                size: 12,
+                font: boldFont,
+                color: (0, pdf_lib_1.rgb)(0.7, 0.7, 0.7),
+            });
+            const last5 = serialFull.slice(-5) || "";
+            if (last5) {
+                const xQR = startX + (templateSize - qrSize) / 2;
+                const yQR = startY - templateSize + (templateSize - qrSize) / 2 - 40;
+                const maxTextWidth = qrSize;
+                const textWidthAt1 = font.widthOfTextAtSize(last5, 1);
+                let textSize = textWidthAt1 > 0 ? Math.min(6, maxTextWidth / textWidthAt1) : 6;
+                if (textSize < 3)
+                    textSize = 3;
+                const textWidth = font.widthOfTextAtSize(last5, textSize);
+                const textX = xQR + (qrSize - textWidth) / 2;
+                const textY = yQR - 5;
+                page.drawText(last5, {
+                    x: textX,
+                    y: textY,
+                    size: textSize,
+                    font: boldFont,
+                    color: (0, pdf_lib_1.rgb)(0.7, 0.7, 0.7),
+                });
+            }
+        }
+        catch (err) {
+            // ignore
+        }
+    }
+    const pdfBytes = yield pdfDoc.save();
+    return Buffer.from(pdfBytes);
+});
+exports.generateQRPDF = generateQRPDF;

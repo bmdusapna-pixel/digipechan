@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.paymentStatusHandler = exports.paymentCallBackHandler = exports.initiatePayment = void 0;
+exports.paymentStatusHandlerDemo = exports.paymentCallBackHandlerDemo = exports.initiatePaymentDemo = exports.paymentStatusHandler = exports.paymentCallBackHandler = exports.initiatePayment = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const newQRTypeModel_1 = require("../../models/qr-flow/newQRTypeModel");
 const ApiResponse_1 = require("../../config/ApiResponse");
@@ -67,7 +67,7 @@ exports.initiatePayment = (0, express_async_handler_1.default)((req, res) => __a
     // - Customer cart flow: keep existing frontend redirect and let FE poll /payment-status
     const isSalesmanFlow = Boolean(qrId);
     const backendUrl = secrets_1.NODE_ENV === 'dev' ? secrets_1.BACKEND_BASE_URL : secrets_1.BACKEND_PROD_URL;
-    const frontendBaseUrl = "https://client-eight-beige.vercel.app";
+    const frontendBaseUrl = secrets_1.NODE_ENV === "dev" ? secrets_1.FRONTEND_BASE_URL_DEV : secrets_1.FRONTEND_BASE_URL_PROD_DOMAIN;
     const redirectUrl = isSalesmanFlow
         ? `${backendUrl}/api/qr-flow/payment/verify-payment`
         : `${frontendBaseUrl}/payment-status`;
@@ -186,7 +186,7 @@ exports.paymentCallBackHandler = (0, express_async_handler_1.default)((req, res)
         transaction.status = constants_1.PaymentTransactionStatus.FAILED;
         yield transaction.save();
     }
-    const frontendBaseUrl = "https://client-eight-beige.vercel.app";
+    const frontendBaseUrl = secrets_1.NODE_ENV === "dev" ? secrets_1.FRONTEND_BASE_URL_DEV : secrets_1.FRONTEND_BASE_URL_PROD_DOMAIN;
     const redirectFrontendUrl = `${frontendBaseUrl}/payment-status?transactionId=${transactionId}`;
     // return ApiResponse(res,200, 'Phone Pe Payment completed!', true, redirectFrontendUrl);
     return res.redirect(redirectFrontendUrl);
@@ -267,4 +267,44 @@ exports.paymentStatusHandler = (0, express_async_handler_1.default)((req, res) =
         items: transaction.items,
         amount: transaction.amount,
     });
+}));
+// ---------------------- DEMO HANDLERS (no external API / DB calls) ----------------------
+// These handlers simulate the behaviour of the real controllers for testing/demo
+exports.initiatePaymentDemo = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const { items = [], amount } = req.body;
+    const transactionId = new mongoose_1.default.Types.ObjectId();
+    const mockAmount = typeof amount === "number" && amount > 0
+        ? amount
+        : ((_a = items === null || items === void 0 ? void 0 : items.length) !== null && _a !== void 0 ? _a : 0) * 100; // fallback mock calculation
+    const demoPaymentUrl = `https://demo.payment/gateway/${transactionId.toString()}`;
+    // Return same shape as original handler on success (payment_url string)
+    return (0, ApiResponse_1.ApiResponse)(res, 200, "Payment initiated", true, demoPaymentUrl);
+}));
+exports.paymentCallBackHandlerDemo = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { client_txn_id: transactionId } = req.query;
+    if (!transactionId)
+        return (0, ApiResponse_1.ApiResponse)(res, 400, "Missing Txn ID", false, null);
+    // Mirror original redirect (no extra query params)
+    const frontendBaseUrl = secrets_1.NODE_ENV === "dev" ? secrets_1.FRONTEND_BASE_URL_DEV : secrets_1.FRONTEND_BASE_URL_PROD_DOMAIN;
+    const redirectFrontendUrl = `${frontendBaseUrl}/payment-status?transactionId=${transactionId}`;
+    return res.redirect(redirectFrontendUrl);
+}));
+exports.paymentStatusHandlerDemo = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { transactionId, client_txn_id } = req.query;
+    const id = transactionId || client_txn_id;
+    if (!id)
+        return (0, ApiResponse_1.ApiResponse)(res, 400, "Missing transaction id", false, null);
+    // Return same shape as original: { paymentStatus, items, amount }
+    const demoResponse = {
+        paymentStatus: constants_1.PaymentTransactionStatus.PAID,
+        items: [
+            {
+                qrTypeId: "demo-qrtype",
+                quantity: 1,
+            },
+        ],
+        amount: 100,
+    };
+    return (0, ApiResponse_1.ApiResponse)(res, 200, "Payment information fetched successfully", true, demoResponse);
 }));
