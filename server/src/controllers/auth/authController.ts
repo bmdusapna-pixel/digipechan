@@ -181,7 +181,8 @@ export const login = expressAsyncHandler(
           "Login Error!"
         );
 
-      if (!user.isVerified)
+      // In development, allow login even if email is not verified
+      if (!user.isVerified && NODE_ENV === "production") {
         return ApiResponse(
           res,
           403,
@@ -190,6 +191,12 @@ export const login = expressAsyncHandler(
           null,
           "Unverified Email"
         );
+      }
+      
+      // Log in development if email is not verified (but still allow login)
+      if (!user.isVerified && NODE_ENV === "dev") {
+        console.log(`⚠️ Warning: User ${user.email} is logging in with unverified email (allowed in dev mode)`);
+      }
       if (validation.data.token) {
         const set = new Set([
           ...(user.deviceTokens || []),

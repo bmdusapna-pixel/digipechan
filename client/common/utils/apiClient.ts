@@ -52,6 +52,16 @@ export const apiRequest = async <T>(
 
     const requestUrl = queryString ? `${url}?${queryString}` : url;
 
+    console.log("🌐 API Request:", {
+        method,
+        url: requestUrl,
+        hasBody: method !== "GET",
+        headers: {
+            ...(isFormData ? {} : { "Content-Type": "application/json" }),
+            ...extraHeaders,
+        }
+    });
+
     const response = await fetch(requestUrl, {
         method,
         ...(method !== "GET" && { body: isFormData ? (data as FormData) : JSON.stringify(data) }),
@@ -62,17 +72,39 @@ export const apiRequest = async <T>(
         credentials: "include",
     });
 
+    console.log("📡 API Response:", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+    });
+
     if (response.status === 401 && !isAuthRequest) {
         toast.error("Your session has expired. Please login again.");
         window.location.href = SITE_MAP.LOGIN;
         return null;
     }
 
-    const responseBody: Response = await response.json();
+    let responseBody: Response;
+    try {
+        responseBody = await response.json();
+    } catch (error) {
+        console.error("Failed to parse response as JSON:", error);
+        toast.error(`HTTP Error: ${response.status} - Unable to parse server response`);
+        throw Error(`HTTP ${response.status}: Unable to parse server response`);
+    }
 
     if (!response.ok || !responseBody.SUCCESS) {
-        toast.error(responseBody.MESSAGE || responseBody.ERROR || `HTTP Error: ${response.status}`);
-        throw Error("Something wend wrong.");
+        const errorMessage = responseBody.MESSAGE || responseBody.ERROR || `HTTP Error: ${response.status}`;
+        console.error("API Error:", {
+            status: response.status,
+            message: errorMessage,
+            error: responseBody.ERROR,
+            success: responseBody.SUCCESS,
+            fullResponse: responseBody
+        });
+        toast.error(errorMessage);
+        throw Error(errorMessage);
     }
 
     return responseBody.DATA as T;

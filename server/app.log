@@ -2653,3 +2653,28 @@
 2026-01-07 16:47:25 [[32minfo[39m] Mounted /api routes (dev mode)
 2026-01-07 16:47:25 [[32minfo[39m] Started Your Application on Port 8080
 2026-01-07 16:47:34 [[34mdebug[39m] Database connected successfully!
+2026-01-08 17:53:37 [[32minfo[39m] Mounted /api routes (dev mode)
+2026-01-08 17:53:37 [[32minfo[39m] Started Your Application on Port 8080
+2026-01-08 17:53:38 [[34mdebug[39m] Database connected successfully!
+2026-01-08 17:59:17 [[32minfo[39m] Mounted /api routes (dev mode)
+2026-01-08 17:59:17 [[32minfo[39m] Started Your Application on Port 8080
+2026-01-08 17:59:18 [[34mdebug[39m] Database connected successfully!
+2026-01-08 17:59:44 [[32minfo[39m] CORS: Allowing localhost origin: http://localhost:3000
+2026-01-08 17:59:44 [[32minfo[39m] CORS: Allowing localhost origin: http://localhost:3000
+2026-01-08 17:59:49 [[32minfo[39m] CORS: Allowing localhost origin: http://localhost:3000
+2026-01-08 17:59:49 [[32minfo[39m] CORS: Allowing localhost origin: http://localhost:3000
+2026-01-08 18:00:45 [[32minfo[39m] Mounted /api routes (dev mode)
+2026-01-08 18:00:45 [[32minfo[39m] Started Your Application on Port 8080
+2026-01-08 18:00:45 [[34mdebug[39m] Database connected successfully!
+2026-01-08 18:01:45 [[32minfo[39m] CORS: Allowing localhost origin: http://localhost:3000
+2026-01-08 18:01:45 [[32minfo[39m] CORS: Allowing localhost origin: http://localhost:3000
+2026-01-08 18:04:05 [[32minfo[39m] Mounted /api routes (dev mode)
+2026-01-08 18:04:05 [[32minfo[39m] Started Your Application on Port 8080
+2026-01-08 18:04:06 [[34mdebug[39m] Database connected successfully!
+2026-01-08 18:04:17 [[32minfo[39m] Mounted /api routes (dev mode)
+2026-01-08 18:04:17 [[32minfo[39m] Started Your Application on Port 8080
+2026-01-08 18:04:23 [[34mdebug[39m] Database connected successfully!
+2026-01-08 18:05:00 [[32minfo[39m] CORS: Allowing localhost origin: http://localhost:3000
+2026-01-08 18:05:00 [[32minfo[39m] CORS: Allowing localhost origin: http://localhost:3000
+2026-01-08 18:05:01 [[32minfo[39m] CORS: Allowing localhost origin: http://localhost:3000
+2026-01-08 18:05:01 [[32minfo[39m] CORS: Allowing localhost origin: http://localhost:3000
