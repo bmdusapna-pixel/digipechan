@@ -2690,3 +2690,6 @@
 2026-01-08 19:00:33 [[32minfo[39m] CORS: Allowing localhost origin: http://localhost:3000
 2026-01-08 19:00:33 [[32minfo[39m] CORS: Allowing localhost origin: http://localhost:3000
 2026-01-08 19:00:33 [[32minfo[39m] CORS: Allowing localhost origin: http://localhost:3000
+2026-01-09 10:26:49 [[32minfo[39m] Mounted /api routes (dev mode)
+2026-01-09 10:26:49 [[32minfo[39m] Started Your Application on Port 8080
+2026-01-09 10:26:55 [[34mdebug[39m] Database connected successfully!

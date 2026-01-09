@@ -27,6 +27,7 @@ const allowedOrigins = [
   "https://digipehchan.in",
   "https://client-eight-beige.vercel.app",
   "https://digi-pehchan-client.vercel.app",
+  "https://digipechan-backend.vercel.app",
   RTOAPI,
   // Local development origins
   "http://localhost:3000",
