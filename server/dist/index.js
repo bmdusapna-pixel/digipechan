@@ -30,18 +30,33 @@ const allowedOrigins = [
     "https://digipehchan.in",
     "https://client-eight-beige.vercel.app",
     "https://digi-pehchan-client.vercel.app",
+    "https://digipechan-backend.vercel.app",
     secrets_1.RTOAPI,
-    "*",
+    // Local development origins
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
 ];
 app.use((0, cors_1.default)({
     origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin)
-            return callback(null, true); // Allow requests with no origin (like mobile apps or curl requests)
-        if (allowedOrigins.indexOf(origin) === -1) {
-            const msg = "The CORS policy for this site does not allow access from the specified Origin.";
-            return callback(new Error(msg), false);
+            return callback(null, true);
+        // In development, allow all localhost origins
+        if (secrets_1.NODE_ENV === "dev") {
+            if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+                logger_1.default.info(`CORS: Allowing localhost origin: ${origin}`);
+                return callback(null, true);
+            }
         }
-        return callback(null, true);
+        // Check against allowed origins
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            return callback(null, true);
+        }
+        const msg = "The CORS policy for this site does not allow access from the specified Origin.";
+        logger_1.default.warn(`CORS: Blocked origin: ${origin}`);
+        return callback(new Error(msg), false);
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],

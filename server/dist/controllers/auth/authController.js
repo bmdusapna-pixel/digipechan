@@ -96,8 +96,16 @@ exports.login = (0, express_async_handler_1.default)((req, res) => __awaiter(voi
         const isValidPassword = yield bcrypt_1.default.compare(validation.data.password, user === null || user === void 0 ? void 0 : user.password);
         if (!user || !isValidPassword)
             return (0, ApiResponse_1.ApiResponse)(res, 401, "Invalid Credentials", false, null, "Login Error!");
-        if (!user.isVerified)
-            return (0, ApiResponse_1.ApiResponse)(res, 403, "Email is not verified!", false, null, "Unverified Email");
+        // Email verification check
+        // In development mode, always allow unverified logins
+        // In production, check ALLOW_UNVERIFIED_LOGIN environment variable
+        if (!user.isVerified) {
+            if (secrets_1.NODE_ENV === "production" && !secrets_1.ALLOW_UNVERIFIED_LOGIN) {
+                return (0, ApiResponse_1.ApiResponse)(res, 403, "Email is not verified!", false, null, "Unverified Email");
+            }
+            // Log warning for unverified login attempts
+            console.log(`⚠️ Warning: User ${user.email} is logging in with unverified email (${secrets_1.NODE_ENV === "dev" ? "allowed in dev mode" : "allowed via ALLOW_UNVERIFIED_LOGIN"})`);
+        }
         if (validation.data.token) {
             const set = new Set([
                 ...(user.deviceTokens || []),

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AGORA_APP_CERT = exports.AGORA_APP_ID = exports.CLOUD_PHONE = exports.salessquared_api_key = exports.RTO_TOKEN = exports.RTOAPI = exports.TWILIO_PHONE_NUMBER = exports.TWILIO_AUTH_TOKEN = exports.TWILIO_ACCOUNT_SID = exports.HASH_ID_SECRET_SALT = exports.FRONTEND_SIGNUP_URL = exports.EKQR_API_KEY = exports.PHONEPE_MERCHANT_ID = exports.PHONEPE_SALT_KEY = exports.PHONEPE_SALT_INDEX = exports.BACKEND_PROD_URL = exports.BACKEND_BASE_URL = exports.NODE_ENV = exports.CLOUDINARY_API_SECRET = exports.CLOUDINARY_API_KEY = exports.CLOUDINARY_CLOUD_NAME = exports.FRONTEND_BASE_URL_PROD_DOMAIN = exports.FRONTEND_BASE_URL_PROD_VERCEL = exports.FRONTEND_BASE_URL_DEV = exports.FRONTEND_URL = exports.JWT_EXPIRES_IN = exports.JWT_SECRET = exports.SEND_EMAIL_RETRIES = exports.NODEMAILER_GMAIL_APP_PASSWORD = exports.NODEMAILER_SENDER_ADDRESS = exports.NODEMAILER_PORT = exports.NODEMAILER_HOST = exports.OTP_EXPIRY_MINUTES = exports.MAX_RETRIES = exports.MONGODB_DATABASE_URL = exports.MONGODB_DATABASE_NAME = exports.PORT = void 0;
+exports.ALLOW_UNVERIFIED_LOGIN = exports.AGORA_APP_CERT = exports.AGORA_APP_ID = exports.CLOUD_PHONE = exports.salessquared_api_key = exports.RTO_TOKEN = exports.RTOAPI = exports.TWILIO_PHONE_NUMBER = exports.TWILIO_AUTH_TOKEN = exports.TWILIO_ACCOUNT_SID = exports.HASH_ID_SECRET_SALT = exports.FRONTEND_SIGNUP_URL = exports.EKQR_API_KEY = exports.PHONEPE_MERCHANT_ID = exports.PHONEPE_SALT_KEY = exports.PHONEPE_SALT_INDEX = exports.BACKEND_PROD_URL = exports.BACKEND_BASE_URL = exports.NODE_ENV = exports.CLOUDINARY_API_SECRET = exports.CLOUDINARY_API_KEY = exports.CLOUDINARY_CLOUD_NAME = exports.FRONTEND_BASE_URL_PROD_DOMAIN = exports.FRONTEND_BASE_URL_PROD_VERCEL = exports.FRONTEND_BASE_URL_DEV = exports.FRONTEND_URL = exports.JWT_EXPIRES_IN = exports.JWT_SECRET = exports.SEND_EMAIL_RETRIES = exports.NODEMAILER_GMAIL_APP_PASSWORD = exports.NODEMAILER_SENDER_ADDRESS = exports.NODEMAILER_PORT = exports.NODEMAILER_HOST = exports.OTP_EXPIRY_MINUTES = exports.MAX_RETRIES = exports.MONGODB_DATABASE_URL = exports.MONGODB_DATABASE_NAME = exports.PORT = void 0;
 require("dotenv").config();
 exports.PORT = process.env.PORT;
 exports.MONGODB_DATABASE_NAME = process.env.MONGODB_DATABASE_NAME;
@@ -39,3 +39,5 @@ exports.salessquared_api_key = process.env.salessquared_api_key;
 exports.CLOUD_PHONE = process.env.CLOUD_PHONE;
 exports.AGORA_APP_ID = process.env.AGORA_APP_ID || "";
 exports.AGORA_APP_CERT = process.env.AGORA_APP_CERT || "";
+// Allow unverified email logins (set to "true" to allow, "false" to enforce verification)
+exports.ALLOW_UNVERIFIED_LOGIN = process.env.ALLOW_UNVERIFIED_LOGIN === "true" || false;
