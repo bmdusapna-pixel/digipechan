@@ -19,6 +19,7 @@ import {
   HASH_ID_SECRET_SALT,
   JWT_SECRET,
   NODE_ENV,
+  ALLOW_UNVERIFIED_LOGIN,
 } from "../../secrets";
 import { sendEmail } from "../../config/mailer";
 import jwt from "jsonwebtoken";
@@ -181,21 +182,22 @@ export const login = expressAsyncHandler(
           "Login Error!"
         );
 
-      // In development, allow login even if email is not verified
-      if (!user.isVerified && NODE_ENV === "production") {
-        return ApiResponse(
-          res,
-          403,
-          "Email is not verified!",
-          false,
-          null,
-          "Unverified Email"
-        );
-      }
-      
-      // Log in development if email is not verified (but still allow login)
-      if (!user.isVerified && NODE_ENV === "dev") {
-        console.log(`⚠️ Warning: User ${user.email} is logging in with unverified email (allowed in dev mode)`);
+      // Email verification check
+      // In development mode, always allow unverified logins
+      // In production, check ALLOW_UNVERIFIED_LOGIN environment variable
+      if (!user.isVerified) {
+        if (NODE_ENV === "production" && !ALLOW_UNVERIFIED_LOGIN) {
+          return ApiResponse(
+            res,
+            403,
+            "Email is not verified!",
+            false,
+            null,
+            "Unverified Email"
+          );
+        }
+        // Log warning for unverified login attempts
+        console.log(`⚠️ Warning: User ${user.email} is logging in with unverified email (${NODE_ENV === "dev" ? "allowed in dev mode" : "allowed via ALLOW_UNVERIFIED_LOGIN"})`);
       }
       if (validation.data.token) {
         const set = new Set([

@@ -40,3 +40,5 @@ export const salessquared_api_key = process.env.salessquared_api_key!;
 export const CLOUD_PHONE = process.env.CLOUD_PHONE!;
 export const AGORA_APP_ID = process.env.AGORA_APP_ID || "";
 export const AGORA_APP_CERT = process.env.AGORA_APP_CERT || "";
+// Allow unverified email logins (set to "true" to allow, "false" to enforce verification)
+export const ALLOW_UNVERIFIED_LOGIN = process.env.ALLOW_UNVERIFIED_LOGIN === "true" || false;
