@@ -43,3 +43,4 @@ Check your server's `.env` file for the `PORT` variable, or look at the console 
 - Make sure the backend server is running on the correct port
 - Check that the API endpoint path includes `/api` prefix in development mode
 
+
